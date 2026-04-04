@@ -18,13 +18,8 @@ WORKDIR /app
 # Copiamos el archivo JAR generado en la etapa anterior
 COPY --from=build /app/target/*.jar app.jar
 
-# Mapeo explícito: las variables de entorno de Render se inyectan en Spring
-# SPRING_DATA_MONGODB_URI sobrescribe automáticamente spring.data.mongodb.uri
-ENV SPRING_DATA_MONGODB_URI=${MONGODB_URI}
-ENV SERVER_PORT=${PORT}
-
-# Exponemos el puerto estándar que suele usar Render (10000)
-EXPOSE 10000
+# Render detecta automáticamente el puerto abierto; Spring lo toma de PORT.
+EXPOSE 8080
 
 # Ejecución de la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
