@@ -16,8 +16,12 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 8080
+# Mapeo explícito de variables de entorno de Render a Propiedades de Spring
+ENV SPRING_DATA_MONGODB_URI=${MONGODB_URI}
+ENV SERVER_PORT=${PORT}
 
-# Usamos directamente el comando java. 
-# Spring leerá automáticamente PORT y MONGODB_URI del entorno de Render.
-ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
+EXPOSE 10000
+
+# Eliminamos -Dspring.profiles.active=prod si no tienes archivos de perfil, 
+# para que no busque configuraciones inexistentes.
+ENTRYPOINT ["java", "-jar", "app.jar"]
