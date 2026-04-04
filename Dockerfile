@@ -7,7 +7,8 @@ COPY mvnw pom.xml ./
 RUN chmod +x mvnw && ./mvnw -q -DskipTests dependency:go-offline
 
 COPY src src
-RUN ./mvnw -q -DskipTests package
+# Cambia esta línea en tu Build stage:
+RUN ./mvnw -q clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:23-jre
