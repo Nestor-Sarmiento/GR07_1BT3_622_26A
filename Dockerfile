@@ -17,5 +17,5 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# Deshabilita Docker Compose
-ENTRYPOINT ["sh", "-c", "java -Dspring.profiles.active=prod -Dserver.port=${PORT:-8080} -jar app.jar"]
+# Pasa TODAS las propiedades como parámetros JVM para Render
+ENTRYPOINT ["sh", "-c", "java -Dspring.profiles.active=prod -Dspring.docker.compose.enabled=false -Dspring.data.mongodb.uri='mongodb+srv://servidor_render:8RuVUs2hKBCw0ceR@pdciae.kmjvbbb.mongodb.net/pdciae?retryWrites=true&w=majority&appName=PDCIAE' -Dserver.port=${PORT:-8080} -jar app.jar"]
