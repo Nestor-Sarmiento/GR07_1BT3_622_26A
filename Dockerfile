@@ -16,4 +16,8 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
+
+# Script que expande las variables de entorno antes de ejecutar Java
+RUN echo '#!/bin/sh\nexec java -Dspring.docker.compose.enabled=false -Dspring.data.mongodb.uri="$MONGODB_URI" -Dserver.port="${PORT:-8080}" -jar app.jar' > /app/start.sh && chmod +x /app/start.sh
+
+ENTRYPOINT ["/app/start.sh"]
