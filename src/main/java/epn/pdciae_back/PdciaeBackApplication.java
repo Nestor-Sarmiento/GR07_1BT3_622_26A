@@ -24,7 +24,11 @@ public class PdciaeBackApplication {
 		for (String key : MONGO_URI_ENV_KEYS) {
 			String value = System.getenv(key);
 			if (value != null && !value.isBlank()) {
-				System.setProperty("spring.data.mongodb.uri", value.trim());
+				String uri = value.trim();
+				System.setProperty("spring.data.mongodb.uri", uri);
+				// Compatibilidad adicional por si alguna versión usa esta clave abreviada.
+				System.setProperty("spring.mongodb.uri", uri);
+				System.out.println("[MongoConfig] URI tomada desde " + key + " -> " + sanitizeMongoUri(uri));
 				return;
 			}
 		}
@@ -32,6 +36,24 @@ public class PdciaeBackApplication {
 		throw new IllegalStateException(
 			"MongoDB URI no configurada. Define una variable de entorno: " + String.join(", ", MONGO_URI_ENV_KEYS)
 		);
+	}
+
+	private static String sanitizeMongoUri(String uri) {
+		int schemeIndex = uri.indexOf("://");
+		if (schemeIndex < 0) {
+			return "invalid-uri";
+		}
+
+		String scheme = uri.substring(0, schemeIndex + 3);
+		String rest = uri.substring(schemeIndex + 3);
+		int atIndex = rest.indexOf('@');
+		if (atIndex >= 0) {
+			rest = rest.substring(atIndex + 1);
+		}
+
+		int slashIndex = rest.indexOf('/');
+		String hostAndParams = slashIndex >= 0 ? rest.substring(0, slashIndex) : rest;
+		return scheme + hostAndParams;
 	}
 
 }
