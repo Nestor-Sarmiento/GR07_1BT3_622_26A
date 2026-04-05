@@ -33,9 +33,7 @@ public class PdciaeBackApplication {
 			}
 		}
 
-		throw new IllegalStateException(
-			"MongoDB URI no configurada. Define una variable de entorno: " + String.join(", ", MONGO_URI_ENV_KEYS)
-		);
+		System.out.println("[MongoConfig] Sin variable de entorno, usando URI definida en el perfil de Spring activo.");
 	}
 
 	private static String sanitizeMongoUri(String uri) {
