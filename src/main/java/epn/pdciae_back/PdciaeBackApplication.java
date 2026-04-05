@@ -8,11 +8,12 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories(basePackages = "epn.repositories")
 public class PdciaeBackApplication {
 	private static final String[] MONGO_URI_ENV_KEYS = {
-		"SPRING_DATA_MONGODB_URI",
-		"MONGODB_URI",
-		"MONGO_URI",
-		"MONGODB_URL",
-		"DATABASE_URL"
+			"LOCAL_MONGODB_URI",
+			"SPRING_DATA_MONGODB_URI",
+			"MONGODB_URI",
+			"MONGO_URI",
+			"MONGODB_URL",
+			"DATABASE_URL"
 	};
 
 	public static void main(String[] args) {
@@ -33,7 +34,14 @@ public class PdciaeBackApplication {
 			}
 		}
 
-		System.out.println("[MongoConfig] Sin variable de entorno, usando URI definida en el perfil de Spring activo.");
+		// Si no hay variables de entorno, forzamos la de Atlas para que funcione en
+		// local
+		String atlasUri = "mongodb+srv://render_user:Render123@pdciae.kmjvbbb.mongodb.net/pdciae?retryWrites=true&w=majority&appName=PDCIAE";
+		System.setProperty("spring.data.mongodb.uri", atlasUri);
+		System.setProperty("spring.mongodb.uri", atlasUri);
+
+		System.out
+				.println("[MongoConfig] Sin variable de entorno. Se ha forzado la URI de Atlas para desarrollo local.");
 	}
 
 	private static String sanitizeMongoUri(String uri) {
