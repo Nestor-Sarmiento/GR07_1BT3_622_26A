@@ -58,10 +58,10 @@ public class AdminController {
     @PostMapping
     @Operation(
             summary = "Crear nuevo administrador",
-            description = "Crea un nuevo administrador con email, nombre, apellido y contraseña"
+            description = "Crea un nuevo administrador con email, nombre y apellido. La contraseña se genera automáticamente y se envía por email. El admin debe cambiarla en el primer login."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Administrador creado exitosamente"),
+            @ApiResponse(responseCode = "201", description = "Administrador creado exitosamente - Contraseña temporal enviada por email"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos - ID debe ser null"),
             @ApiResponse(responseCode = "409", description = "Conflicto - Email ya está en uso"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
@@ -72,7 +72,11 @@ public class AdminController {
         }
         try {
             Admin creado = userService.crearAdmin(admin);
-            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "message", "Administrador creado exitosamente",
+                    "admin", creado,
+                    "note", "Contraseña temporal enviada al email " + creado.getEmail()
+            ));
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
         }

@@ -31,4 +31,7 @@ public class Usuario {
     private String password;
 
     private Estados estado;
+    
+    @Builder.Default
+    private boolean mustChangePassword = false;  // Flag para forzar cambio de password en primer login
 }

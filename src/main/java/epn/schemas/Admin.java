@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Admin extends Usuario {
 
 	public Admin(String id_usuario, String email, String nombre, String apellido, String password, Estados estado) {
-		super(id_usuario, email, nombre, apellido, Rol.ADMIN, password, estado);
+		super(id_usuario, email, nombre, apellido, Rol.ADMIN, password, estado, false);
 		setRolAdmin();
 	}
 
