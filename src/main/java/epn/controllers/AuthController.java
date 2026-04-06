@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -61,7 +62,7 @@ public class AuthController {
     @PostMapping("/change-password")
     @Operation(
             summary = "Cambiar contraseña",
-            description = "Cambiar la contraseña del usuario autenticado. Debes enviar el email y la nueva contraseña."
+            description = "Cambiar la contraseña del usuario autenticado. El email se obtiene del JWT, solo envía la nueva contraseña."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -70,7 +71,7 @@ public class AuthController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Datos inválidos (email o password vacío)"
+                    description = "Datos inválidos (newPassword vacío)"
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -82,19 +83,20 @@ public class AuthController {
             )
     })
     public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
         String newPassword = request.get("newPassword");
 
-        if (email == null || email.isBlank() || newPassword == null || newPassword.isBlank()) {
+        if (newPassword == null || newPassword.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Email y newPassword son requeridos"));
+                    .body(Map.of("error", "newPassword es requerido"));
         }
+
+        // Obtener email del JWT desde el contexto de seguridad
+        String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
 
         try {
             userService.changePassword(email, newPassword);
             return ResponseEntity.ok(Map.of(
-                    "message", "Contraseña actualizada exitosamente",
-                    "email", email
+                    "message", "Contraseña actualizada exitosamente"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

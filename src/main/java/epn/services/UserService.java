@@ -69,6 +69,30 @@ public class UserService {
         return adminRepository.save(existente);
     }
 
+    /**
+     * Actualiza solo nombre y apellido del administrador autenticado
+     * 
+     * @param email Email del administrador autenticado
+     * @param adminActualizado Objeto con nombre y/o apellido a actualizar
+     * @return Admin actualizado
+     */
+    public Admin actualizarMisDatos(String email, Admin adminActualizado) {
+        Admin existente = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin no encontrado"));
+
+        // Solo permitir actualizar nombre
+        if (adminActualizado.getNombre() != null && !adminActualizado.getNombre().isBlank()) {
+            existente.setNombre(adminActualizado.getNombre());
+        }
+
+        // Solo permitir actualizar apellido
+        if (adminActualizado.getApellido() != null && !adminActualizado.getApellido().isBlank()) {
+            existente.setApellido(adminActualizado.getApellido());
+        }
+
+        return adminRepository.save(existente);
+    }
+
     @SuppressWarnings("null")
     public void eliminarAdmin(String id) {
         Admin existente = obtenerAdminPorId(id);

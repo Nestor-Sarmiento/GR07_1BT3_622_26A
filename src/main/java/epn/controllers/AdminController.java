@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -83,18 +84,20 @@ public class AdminController {
 
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping
     @Operation(
-            summary = "Actualizar administrador",
-            description = "Actualiza los datos de un administrador (email, nombre, apellido, contraseña)"
+            summary = "Actualizar mis datos",
+            description = "Actualiza los datos del administrador autenticado. Solo se pueden actualizar nombre y/o apellido."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Administrador actualizado"),
+            @ApiResponse(responseCode = "200", description = "Datos actualizados exitosamente"),
             @ApiResponse(responseCode = "404", description = "Administrador no encontrado"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public Admin actualizar(@PathVariable String id, @RequestBody Admin admin) {
-        return userService.actualizarAdmin(id, admin);
+    public Admin actualizarMisDatos(@RequestBody Admin admin) {
+        // Obtener email del JWT desde el contexto de seguridad
+        String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        return userService.actualizarMisDatos(email, admin);
     }
 
     @DeleteMapping("/{id}")
