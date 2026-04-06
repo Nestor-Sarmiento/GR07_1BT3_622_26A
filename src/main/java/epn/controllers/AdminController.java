@@ -29,6 +29,22 @@ public class AdminController {
         this.userService = userService;
     }
 
+    @GetMapping("/me")
+    @Operation(
+            summary = "Obtener mis datos",
+            description = "Obtiene los datos del administrador autenticado (nombre, apellido, email)"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Datos del usuario obtenidos"),
+            @ApiResponse(responseCode = "404", description = "Administrador no encontrado"),
+            @ApiResponse(responseCode = "401", description = "No autenticado - Token inválido o expirado")
+    })
+    public ResponseEntity<?> obtenerMisDatos() {
+        // Obtener email del JWT desde el contexto de seguridad
+        String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        return ResponseEntity.ok(userService.obtenerMisDatos(email));
+    }
+
     @GetMapping
     @Operation(
             summary = "Listar administradores",

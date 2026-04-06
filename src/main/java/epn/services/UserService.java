@@ -36,6 +36,22 @@ public class UserService {
         return findByIdOrThrow(adminRepository, id, "Admin no encontrado");
     }
 
+    public Admin obtenerAdminPorEmail(String email) {
+        return adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin no encontrado con email: " + email));
+    }
+
+    public java.util.Map<String, String> obtenerMisDatos(String email) {
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin no encontrado con email: " + email));
+        
+        return java.util.Map.of(
+                "nombre", admin.getNombre(),
+                "apellido", admin.getApellido(),
+                "email", admin.getEmail()
+        );
+    }
+
     public Admin crearAdmin(Admin admin) {
         if (adminRepository.existsByEmail(admin.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El email " + admin.getEmail() + " ya está en uso.");
