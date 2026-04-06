@@ -4,13 +4,18 @@ import epn.Enums.Rol;
 import epn.repositories.AdminRepository;
 import epn.schemas.Admin;
 import epn.schemas.Usuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -32,8 +37,45 @@ public class UserService {
         return adminRepository.findAll();
     }
 
+    /**
+     * Lista administradores con paginación
+     * Devuelve solo: id, nombre, apellido, email, estado
+     */
+    public Page<Map<String, Object>> listarAdminsPaginado(Pageable pageable) {
+        Page<Admin> adminPage = adminRepository.findAll(pageable);
+        
+        List<Map<String, Object>> adminsResumido = new ArrayList<>();
+        for (Admin admin : adminPage.getContent()) {
+            adminsResumido.add(Map.ofEntries(
+                    Map.entry("id_usuario", admin.getId_usuario()),
+                    Map.entry("nombre", admin.getNombre()),
+                    Map.entry("apellido", admin.getApellido()),
+                    Map.entry("email", admin.getEmail()),
+                    Map.entry("estado", admin.getEstado())
+            ));
+        }
+        
+        return new PageImpl<>(adminsResumido, pageable, adminPage.getTotalElements());
+    }
+
     public Admin obtenerAdminPorId(String id) {
         return findByIdOrThrow(adminRepository, id, "Admin no encontrado");
+    }
+
+    public Admin obtenerAdminPorEmail(String email) {
+        return adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin no encontrado con email: " + email));
+    }
+
+    public java.util.Map<String, String> obtenerMisDatos(String email) {
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin no encontrado con email: " + email));
+        
+        return java.util.Map.of(
+                "nombre", admin.getNombre(),
+                "apellido", admin.getApellido(),
+                "email", admin.getEmail()
+        );
     }
 
     public Admin crearAdmin(Admin admin) {
@@ -66,6 +108,30 @@ public class UserService {
         Admin existente = obtenerAdminPorId(id);
         copyEditableFields(existente, adminActualizado);
         existente.setRol(Rol.ADMIN);
+        return adminRepository.save(existente);
+    }
+
+    /**
+     * Actualiza solo nombre y apellido del administrador autenticado
+     * 
+     * @param email Email del administrador autenticado
+     * @param adminActualizado Objeto con nombre y/o apellido a actualizar
+     * @return Admin actualizado
+     */
+    public Admin actualizarMisDatos(String email, Admin adminActualizado) {
+        Admin existente = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin no encontrado"));
+
+        // Solo permitir actualizar nombre
+        if (adminActualizado.getNombre() != null && !adminActualizado.getNombre().isBlank()) {
+            existente.setNombre(adminActualizado.getNombre());
+        }
+
+        // Solo permitir actualizar apellido
+        if (adminActualizado.getApellido() != null && !adminActualizado.getApellido().isBlank()) {
+            existente.setApellido(adminActualizado.getApellido());
+        }
+
         return adminRepository.save(existente);
     }
 

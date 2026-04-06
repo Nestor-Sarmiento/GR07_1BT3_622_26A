@@ -8,8 +8,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -28,17 +33,35 @@ public class AdminController {
         this.userService = userService;
     }
 
-    @GetMapping
+    @GetMapping("/me")
     @Operation(
-            summary = "Listar administradores",
-            description = "Obtiene la lista completa de administradores registrados"
+            summary = "Obtener mis datos",
+            description = "Obtiene los datos del administrador autenticado (nombre, apellido, email)"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de administradores obtenida"),
+            @ApiResponse(responseCode = "200", description = "Datos del usuario obtenidos"),
+            @ApiResponse(responseCode = "404", description = "Administrador no encontrado"),
             @ApiResponse(responseCode = "401", description = "No autenticado - Token inválido o expirado")
     })
-    public List<Admin> listar() {
-        return userService.listarAdmins();
+    public ResponseEntity<?> obtenerMisDatos() {
+        // Obtener email del JWT desde el contexto de seguridad
+        String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        return ResponseEntity.ok(userService.obtenerMisDatos(email));
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "Listar administradores con paginación",
+            description = "Obtiene una página de administradores registrados. Parámetros: page (0-indexed), size, sort (ejemplo: sort=nombre,desc)"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Página de administradores obtenida"),
+            @ApiResponse(responseCode = "401", description = "No autenticado - Token inválido o expirado")
+    })
+    public ResponseEntity<?> listar(
+            @PageableDefault(size = 10, page = 0, sort = "nombre", direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<Map<String, Object>> page = userService.listarAdminsPaginado(pageable);
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")
@@ -83,18 +106,20 @@ public class AdminController {
 
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping
     @Operation(
-            summary = "Actualizar administrador",
-            description = "Actualiza los datos de un administrador (email, nombre, apellido, contraseña)"
+            summary = "Actualizar mis datos",
+            description = "Actualiza los datos del administrador autenticado. Solo se pueden actualizar nombre y/o apellido."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Administrador actualizado"),
+            @ApiResponse(responseCode = "200", description = "Datos actualizados exitosamente"),
             @ApiResponse(responseCode = "404", description = "Administrador no encontrado"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public Admin actualizar(@PathVariable String id, @RequestBody Admin admin) {
-        return userService.actualizarAdmin(id, admin);
+    public Admin actualizarMisDatos(@RequestBody Admin admin) {
+        // Obtener email del JWT desde el contexto de seguridad
+        String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        return userService.actualizarMisDatos(email, admin);
     }
 
     @DeleteMapping("/{id}")
