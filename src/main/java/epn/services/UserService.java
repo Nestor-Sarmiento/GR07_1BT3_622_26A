@@ -17,10 +17,15 @@ public class UserService {
 
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordGeneratorService passwordGeneratorService;
+    private final EmailService emailService;
 
-    public UserService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
+    public UserService(AdminRepository adminRepository, PasswordEncoder passwordEncoder, 
+                       PasswordGeneratorService passwordGeneratorService, EmailService emailService) {
         this.adminRepository = adminRepository;
         this.passwordEncoder = passwordEncoder;
+        this.passwordGeneratorService = passwordGeneratorService;
+        this.emailService = emailService;
     }
 
     public List<Admin> listarAdmins() {
@@ -36,12 +41,25 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El email " + admin.getEmail() + " ya está en uso.");
         }
 
-        // Hashear password
-        String passwordHasheada = passwordEncoder.encode(admin.getPassword());
+        // 1. Generar contraseña temporal segura
+        String temporaryPassword = passwordGeneratorService.generateSecurePassword();
+        String passwordHasheada = passwordEncoder.encode(temporaryPassword);
         admin.setPassword(passwordHasheada);
 
+        // 2. Marcar que el admin debe cambiar la contraseña en el siguiente login
+        admin.setMustChangePassword(true);
+
+        // 3. Asegurar que sea admin (por seguridad)
         admin.setRol(Rol.ADMIN);
-        return adminRepository.save(admin);
+        
+        // 4. Guardar en base de datos
+        Admin adminGuardado = adminRepository.save(admin);
+
+        // 5. Enviar email con credenciales temporales
+        String nombreCompleto = admin.getNombre() + " " + admin.getApellido();
+        emailService.sendTemporaryPasswordEmail(admin.getEmail(), nombreCompleto, temporaryPassword);
+
+        return adminGuardado;
     }
 
     public Admin actualizarAdmin(String id, Admin adminActualizado) {
@@ -76,5 +94,33 @@ public class UserService {
             String passwordHasheada = passwordEncoder.encode(updated.getPassword());
             existing.setPassword(passwordHasheada);
         }
+    }
+
+    /**
+     * Cambia la contraseña del usuario y marca que ya no necesita cambiarla
+     * 
+     * @param email Email del usuario
+     * @param newPassword Nueva contraseña
+     */
+    public void changePassword(String email, String newPassword) {
+        // Buscar usuario por email
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin no encontrado con email: " + email));
+
+        // Validar que no esté vacío
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La nueva contraseña no puede estar vacía");
+        }
+
+        // Encriptar y actualizar
+        String passwordHasheada = passwordEncoder.encode(newPassword);
+        admin.setPassword(passwordHasheada);
+        admin.setMustChangePassword(false);  // Ya cambió la contraseña
+
+        adminRepository.save(admin);
+
+        // Enviar notificación por email
+        String nombreCompleto = admin.getNombre() + " " + admin.getApellido();
+        emailService.sendPasswordChangedEmail(admin.getEmail(), nombreCompleto);
     }
 }

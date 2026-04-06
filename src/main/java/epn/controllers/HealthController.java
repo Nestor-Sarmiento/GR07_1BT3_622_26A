@@ -9,7 +9,7 @@ public class HealthController {
 
     @GetMapping("/")
     public Map<String, String> root() {
-        return Map.of("status", "ok", "service", "pdciae-back");
+        return Map.of("status", "ok", "service", "owlshare-back");
     }
 
     @GetMapping("/health")
