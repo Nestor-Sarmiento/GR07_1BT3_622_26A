@@ -8,6 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,15 +51,17 @@ public class AdminController {
 
     @GetMapping
     @Operation(
-            summary = "Listar administradores",
-            description = "Obtiene la lista completa de administradores registrados"
+            summary = "Listar administradores con paginación",
+            description = "Obtiene una página de administradores registrados. Parámetros: page (0-indexed), size, sort (ejemplo: sort=nombre,desc)"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de administradores obtenida"),
+            @ApiResponse(responseCode = "200", description = "Página de administradores obtenida"),
             @ApiResponse(responseCode = "401", description = "No autenticado - Token inválido o expirado")
     })
-    public List<Admin> listar() {
-        return userService.listarAdmins();
+    public ResponseEntity<?> listar(
+            @PageableDefault(size = 10, page = 0, sort = "nombre", direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<Map<String, Object>> page = userService.listarAdminsPaginado(pageable);
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")

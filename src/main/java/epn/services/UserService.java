@@ -4,13 +4,18 @@ import epn.Enums.Rol;
 import epn.repositories.AdminRepository;
 import epn.schemas.Admin;
 import epn.schemas.Usuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -30,6 +35,27 @@ public class UserService {
 
     public List<Admin> listarAdmins() {
         return adminRepository.findAll();
+    }
+
+    /**
+     * Lista administradores con paginación
+     * Devuelve solo: id, nombre, apellido, email, estado
+     */
+    public Page<Map<String, Object>> listarAdminsPaginado(Pageable pageable) {
+        Page<Admin> adminPage = adminRepository.findAll(pageable);
+        
+        List<Map<String, Object>> adminsResumido = new ArrayList<>();
+        for (Admin admin : adminPage.getContent()) {
+            adminsResumido.add(Map.ofEntries(
+                    Map.entry("id_usuario", admin.getId_usuario()),
+                    Map.entry("nombre", admin.getNombre()),
+                    Map.entry("apellido", admin.getApellido()),
+                    Map.entry("email", admin.getEmail()),
+                    Map.entry("estado", admin.getEstado())
+            ));
+        }
+        
+        return new PageImpl<>(adminsResumido, pageable, adminPage.getTotalElements());
     }
 
     public Admin obtenerAdminPorId(String id) {
