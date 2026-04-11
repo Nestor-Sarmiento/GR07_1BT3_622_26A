@@ -1,0 +1,241 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+title PDCIAE Back - Class Diagram
+
+package "epn.Enums" {
+  enum Rol {
+    ADMIN
+    ESTUDIANTE
+    TUTOR
+  }
+
+  enum Estados {
+    ACTIVO
+    INACTIVO
+    POR_VERIFICAR
+  }
+}
+
+package "epn.schemas" {
+  class Usuario {
+    - id_usuario: String
+    - email: String
+    - nombre: String
+    - apellido: String
+    - rol: Rol
+    - password: String
+    - estado: Estados
+    - mustChangePassword: boolean
+  }
+
+  class Admin {
+    + Admin(id_usuario: String, email: String, nombre: String, apellido: String, password: String, estado: Estados)
+  }
+
+  class Estudiante {
+    + Estudiante(id_usuario: String, email: String, nombre: String, apellido: String, password: String, estado: Estados)
+  }
+
+  class Tutor {
+    + Tutor(id_usuario: String, email: String, nombre: String, apellido: String, password: String, estado: Estados)
+  }
+
+  class Documento {
+    - id_documento: String
+    - nombreDocumento: String
+    - materia: String
+    - facultad: String
+  }
+}
+
+package "epn.repositories" {
+  interface AdminRepository {
+    + existsByEmail(email: String): boolean
+    + findByEmail(email: String): Optional<Admin>
+  }
+
+  interface EstudianteRepository
+  interface TutorRepository
+  interface DocumentoRepository
+
+  interface "MongoRepository<Admin, String>" as MongoRepoAdmin
+  interface "MongoRepository<Estudiante, String>" as MongoRepoEstudiante
+  interface "MongoRepository<Tutor, String>" as MongoRepoTutor
+  interface "MongoRepository<Documento, String>" as MongoRepoDocumento
+}
+
+package "epn.services" {
+  class AuthResponse {
+    - token: String
+    - mustChangePassword: boolean
+    - message: String
+  }
+
+  class PasswordGeneratorService {
+    + generateSecurePassword(): String
+  }
+
+  class EmailService {
+    + sendTemporaryPasswordEmail(recipientEmail: String, recipientName: String, temporaryPassword: String): void
+    + sendPasswordChangedEmail(recipientEmail: String, recipientName: String): void
+  }
+
+  class UserService {
+    - adminRepository: AdminRepository
+    - passwordEncoder: PasswordEncoder
+    - passwordGeneratorService: PasswordGeneratorService
+    - emailService: EmailService
+    + listarAdmins(): List<Admin>
+    + listarAdminsPaginado(pageable: Pageable): Page<Map<String, Object>>
+    + obtenerAdminPorId(id: String): Admin
+    + obtenerAdminPorEmail(email: String): Admin
+    + obtenerMisDatos(email: String): Map<String, String>
+    + crearAdmin(admin: Admin): Admin
+    + actualizarAdmin(id: String, adminActualizado: Admin): Admin
+    + actualizarMisDatos(email: String, adminActualizado: Admin): Admin
+    + changePassword(email: String, newPassword: String): void
+    + eliminarAdmin(id: String): void
+  }
+
+  class AuthService {
+    - adminRepository: AdminRepository
+    - passwordEncoder: PasswordEncoder
+    - jwtUtil: JwtUtil
+    + autenticar(email: String, passwordEnviado: String): AuthResponse
+  }
+
+  class DocumentoService {
+    - documentoRepository: DocumentoRepository
+    + listar(): List<Documento>
+    + obtenerPorId(id: String): Documento
+    + crear(documento: Documento): Documento
+    + actualizar(id: String, documentoActualizado: Documento): Documento
+    + eliminar(id: String): void
+  }
+}
+
+package "epn.controllers" {
+  class AdminController {
+    - userService: UserService
+    + obtenerMisDatos(): ResponseEntity<?>
+    + listar(pageable: Pageable): ResponseEntity<?>
+    + obtenerPorId(id: String): Admin
+    + crear(admin: Admin): ResponseEntity<?>
+    + actualizarMisDatos(admin: Admin): Admin
+    + eliminar(id: String): ResponseEntity<Void>
+    + healthCheck(): String
+  }
+
+  class AuthController {
+    - authService: AuthService
+    - userService: UserService
+    + login(credentials: Map<String, String>): ResponseEntity<?>
+    + changePassword(request: Map<String, String>): ResponseEntity<?>
+  }
+
+  class DocumentoController {
+    - documentoService: DocumentoService
+    + listar(): List<Documento>
+    + obtenerPorId(id: String): Documento
+    + crear(documento: Documento): ResponseEntity<Documento>
+    + actualizar(id: String, documento: Documento): Documento
+    + eliminar(id: String): ResponseEntity<Void>
+  }
+
+  class HealthController {
+    + root(): Map<String, String>
+    + health(): Map<String, String>
+  }
+
+  class GlobalExceptionHandler {
+    + handleDatabaseErrors(ex: Exception): ResponseEntity<Map<String, Object>>
+    + handleUnexpectedErrors(ex: Exception): ResponseEntity<Map<String, Object>>
+  }
+}
+
+package "epn.pdciae_back.config" {
+  class SecurityConfig {
+    - jwtFilter: JwtFilter
+    + securityFilterChain(http: HttpSecurity): SecurityFilterChain
+    + passwordEncoder(): PasswordEncoder
+  }
+
+  class JwtFilter {
+    - jwtUtil: JwtUtil
+    + doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain): void
+  }
+
+  class OpenApiConfig {
+    + customOpenAPI(): OpenAPI
+  }
+}
+
+package "epn.utils" {
+  class JwtUtil {
+    + generarToken(email: String): String
+    + extraerEmail(token: String): String
+  }
+}
+
+package "epn.pdciae_back" {
+  class PdciaeBackApplication {
+    + main(args: String[]): void
+  }
+}
+
+' Inheritance
+Usuario <|-- Admin
+Usuario <|-- Estudiante
+Usuario <|-- Tutor
+
+' Repository inheritance
+MongoRepoAdmin <|.. AdminRepository
+MongoRepoEstudiante <|.. EstudianteRepository
+MongoRepoTutor <|.. TutorRepository
+MongoRepoDocumento <|.. DocumentoRepository
+
+' Service dependencies
+UserService --> AdminRepository
+UserService --> Admin
+UserService --> Rol
+UserService --> Estados
+UserService --> PasswordGeneratorService
+UserService --> EmailService
+
+AuthService --> AdminRepository
+AuthService --> JwtUtil
+AuthService --> AuthResponse
+
+DocumentoService --> DocumentoRepository
+DocumentoService --> Documento
+
+' Controller dependencies
+AdminController --> UserService
+AdminController --> Admin
+
+AuthController --> AuthService
+AuthController --> UserService
+AuthController --> AuthResponse
+
+DocumentoController --> DocumentoService
+DocumentoController --> Documento
+
+' Config and security dependencies
+SecurityConfig --> JwtFilter
+JwtFilter --> JwtUtil
+
+' Enum usage
+Usuario --> Rol
+Usuario --> Estados
+
+' Application-level package usage
+PdciaeBackApplication ..> "epn.controllers"
+PdciaeBackApplication ..> "epn.services"
+PdciaeBackApplication ..> "epn.repositories"
+PdciaeBackApplication ..> "epn.schemas"
+PdciaeBackApplication ..> "epn.utils"
+
+@enduml

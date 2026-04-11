@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # pdciae-back
 PLATAFORMA DIGITAL COLABORATIVA PARA EL INTERCAMBIO ACADÉMICO ENTRE ESTUDIANTES
 
@@ -25,3 +26,6 @@ mvn clean package
    - `/documentos`
    - `/health`
 
+=======
+# GR07_1BT3_622_26A
+>>>>>>> upstream/main
