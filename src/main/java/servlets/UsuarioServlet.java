@@ -1,9 +1,9 @@
-package epn.servlets;
+package servlets;
 
-import epn.Enums.Estados;
-import epn.Enums.Rol;
-import epn.repositories.UsuarioRepository;
-import epn.schemas.Usuario;
+import Enums.Estados;
+import Enums.Rol;
+import repositories.UsuarioRepository;
+import schemas.Usuario;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

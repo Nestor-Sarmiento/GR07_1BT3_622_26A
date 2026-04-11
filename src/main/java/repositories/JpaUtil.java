@@ -1,4 +1,4 @@
-package epn.repositories;
+package repositories;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;

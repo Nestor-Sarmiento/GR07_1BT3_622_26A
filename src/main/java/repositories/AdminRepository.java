@@ -1,8 +1,8 @@
-package epn.repositories;
+package repositories;
 
-import epn.Enums.Rol;
-import epn.schemas.Admin;
-import epn.schemas.Usuario;
+import Enums.Rol;
+import schemas.Admin;
+import schemas.Usuario;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 

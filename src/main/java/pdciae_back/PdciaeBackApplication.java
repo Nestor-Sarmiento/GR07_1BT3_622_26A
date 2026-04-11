@@ -1,4 +1,4 @@
-package epn.pdciae_back;
+package pdciae_back;
 
 public class PdciaeBackApplication {
 	private PdciaeBackApplication() {

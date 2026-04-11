@@ -1,6 +1,6 @@
-package epn.repositories;
+package repositories;
 
-import epn.schemas.Usuario;
+import schemas.Usuario;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 

@@ -1,6 +1,6 @@
-package epn.web;
+package web;
 
-import epn.repositories.JpaUtil;
+import repositories.JpaUtil;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;

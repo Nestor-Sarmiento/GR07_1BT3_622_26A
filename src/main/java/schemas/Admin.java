@@ -1,7 +1,7 @@
-package epn.schemas;
+package schemas;
 
-import epn.Enums.Estados;
-import epn.Enums.Rol;
+import Enums.Estados;
+import Enums.Rol;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Data;

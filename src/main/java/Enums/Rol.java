@@ -1,4 +1,4 @@
-package epn.Enums;
+package Enums;
 
 public enum Rol {
     ADMIN,
