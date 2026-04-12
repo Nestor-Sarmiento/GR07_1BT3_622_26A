@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import repositories.AdminRepository;
-import schemas.Admin;
+import schemas.Usuario;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -32,7 +32,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        Optional<Admin> adminOpt = adminRepository.findByEmail(email);
+        Optional<Usuario> adminOpt = adminRepository.findByEmail(email);
         if (adminOpt.isEmpty() || !password.equals(adminOpt.get().getPassword())) {
             req.setAttribute("error", "Credenciales incorrectas.");
             req.getRequestDispatcher("/login.jsp").forward(req, resp);

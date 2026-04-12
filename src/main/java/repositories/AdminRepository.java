@@ -1,5 +1,6 @@
 package repositories;
 
+import Enums.Estados;
 import Enums.Rol;
 import schemas.Admin;
 import schemas.Usuario;
@@ -21,7 +22,7 @@ public class AdminRepository {
         }
     }
 
-    public Optional<Admin> findByEmail(String email) {
+    public Optional<Usuario> findByEmail(String email) {
         try (EntityManager em = JpaUtil.createEntityManager()) {
             List<Usuario> result = em.createQuery(
                     "SELECT u FROM Usuario u WHERE u.email = :email AND u.rol = :rol", Usuario.class)
@@ -32,7 +33,44 @@ public class AdminRepository {
             if (result.isEmpty()) {
                 return Optional.empty();
             }
-            return Optional.of((Admin) result.get(0));
+            return Optional.of(result.get(0));
+        }
+    }
+
+    public void upsertInitialAdmin(String email, String password, String nombre, String apellido) {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            EntityTransaction tx = em.getTransaction();
+            try {
+                tx.begin();
+
+                List<Usuario> existing = em.createQuery(
+                        "SELECT u FROM Usuario u WHERE u.email = :email", Usuario.class)
+                        .setParameter("email", email)
+                        .setMaxResults(1)
+                        .getResultList();
+
+                if (existing.isEmpty()) {
+                    Admin admin = new Admin(null, email, nombre, apellido, password, Estados.ACTIVO);
+                    admin.setMustChangePassword(false);
+                    em.persist(admin);
+                } else {
+                    Usuario usuario = existing.get(0);
+                    usuario.setRol(Rol.ADMIN);
+                    usuario.setPassword(password);
+                    usuario.setNombre(nombre);
+                    usuario.setApellido(apellido);
+                    usuario.setEstado(Estados.ACTIVO);
+                    usuario.setMustChangePassword(false);
+                    em.merge(usuario);
+                }
+
+                tx.commit();
+            } catch (RuntimeException ex) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+                throw ex;
+            }
         }
     }
 
