@@ -7,5 +7,9 @@ D:\Software\Projects\EPN_6\MA\src\main\java\repositories\UsuarioRepository.java
 D:\Software\Projects\EPN_6\MA\src\main\java\schemas\Admin.java
 D:\Software\Projects\EPN_6\MA\src\main\java\schemas\Usuario.java
 D:\Software\Projects\EPN_6\MA\src\main\java\servlets\LoginServlet.java
+D:\Software\Projects\EPN_6\MA\src\main\java\servlets\LogoutServlet.java
+D:\Software\Projects\EPN_6\MA\src\main\java\servlets\UsuarioCrearServlet.java
+D:\Software\Projects\EPN_6\MA\src\main\java\servlets\UsuarioDetalleServlet.java
+D:\Software\Projects\EPN_6\MA\src\main\java\servlets\UsuarioEditarServlet.java
 D:\Software\Projects\EPN_6\MA\src\main\java\servlets\UsuarioServlet.java
 D:\Software\Projects\EPN_6\MA\src\main\java\web\AppContextListener.java

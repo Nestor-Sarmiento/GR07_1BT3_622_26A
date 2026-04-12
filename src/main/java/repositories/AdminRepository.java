@@ -15,7 +15,7 @@ public class AdminRepository {
     public boolean existsByEmail(String email) {
         try (EntityManager em = JpaUtil.createEntityManager()) {
             Long count = em.createQuery(
-                    "SELECT COUNT(u) FROM Usuario u WHERE u.email = :email", Long.class)
+                    "SELECT COUNT(u) FROM Usuario u WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(:email))", Long.class)
                     .setParameter("email", email)
                     .getSingleResult();
             return count != null && count > 0;
@@ -25,7 +25,7 @@ public class AdminRepository {
     public Optional<Usuario> findByEmail(String email) {
         try (EntityManager em = JpaUtil.createEntityManager()) {
             List<Usuario> result = em.createQuery(
-                    "SELECT u FROM Usuario u WHERE u.email = :email AND u.rol = :rol", Usuario.class)
+                    "SELECT u FROM Usuario u WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(:email)) AND u.rol = :rol", Usuario.class)
                     .setParameter("email", email)
                     .setParameter("rol", Rol.ADMIN)
                     .setMaxResults(1)

@@ -23,7 +23,7 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String email = value(req.getParameter("email"));
+        String email = value(req.getParameter("email")).toLowerCase();
         String password = value(req.getParameter("password"));
 
         if (email.isBlank() || password.isBlank()) {
