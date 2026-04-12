@@ -54,7 +54,7 @@
         </div>
         <div class="flex items-center gap-3">
             <%-- Login → va a login.jsp directamente --%>
-            <a href="${pageContext.request.contextPath}/login.jsp"
+            <a href="${pageContext.request.contextPath}/login"
                class="px-5 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 transition-all"
                style="font-family:'Manrope',sans-serif">
                 Login
@@ -89,12 +89,12 @@
                         Accede a sesiones personalizadas y una red global de conocimiento.
                     </p>
                     <div class="flex flex-wrap gap-4 pt-4">
-                        <a href="${pageContext.request.contextPath}/login.jsp"
+                        <a href="${pageContext.request.contextPath}/login"
                            class="px-8 py-4 editorial-gradient text-white rounded-lg font-bold text-lg shadow-xl hover:shadow-indigo-200 transition-all active:scale-95"
                            style="font-family:'Manrope',sans-serif">
                             Comenzar ahora
                         </a>
-                        <a href="${pageContext.request.contextPath}/login.jsp"
+                        <a href="${pageContext.request.contextPath}/login"
                            class="px-8 py-4 bg-surface-container-highest text-primary rounded-lg font-bold text-lg hover:bg-surface-container transition-all active:scale-95"
                            style="font-family:'Manrope',sans-serif">
                             Iniciar sesión
@@ -211,7 +211,7 @@
             <p class="text-on-surface-variant text-lg mb-10">
                 Únete a miles de estudiantes que ya están aprendiendo con los mejores tutores.
             </p>
-            <a href="${pageContext.request.contextPath}/login.jsp"
+            <a href="${pageContext.request.contextPath}/login"
                class="inline-flex items-center gap-3 px-10 py-5 editorial-gradient text-white rounded-xl font-bold text-lg shadow-xl hover:shadow-indigo-200 transition-all active:scale-95"
                style="font-family:'Manrope',sans-serif">
                 <span>Empezar gratis</span>

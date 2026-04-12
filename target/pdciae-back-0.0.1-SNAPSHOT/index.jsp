@@ -54,13 +54,13 @@
         </div>
         <div class="flex items-center gap-3">
             <%-- Login → va a login.jsp directamente --%>
-            <a href="${pageContext.request.contextPath}/perfil.jsp"
+            <a href="${pageContext.request.contextPath}/login.jsp"
                class="px-5 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 transition-all"
                style="font-family:'Manrope',sans-serif">
                 Login
             </a>
             <%-- Register → placeholder por ahora --%>
-            <a href="${pageContext.request.contextPath}/perfil.jsp"
+            <a href="#"
                class="px-5 py-2 text-sm font-bold editorial-gradient text-white rounded-lg shadow-sm hover:opacity-90 transition-all"
                style="font-family:'Manrope',sans-serif">
                 Register
