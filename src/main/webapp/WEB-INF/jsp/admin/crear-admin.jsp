@@ -17,15 +17,15 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: {
-            "surface": "#f7f9fc", "surface-container": "#eceef1",
-            "surface-container-low": "#f2f4f7", "surface-container-lowest": "#ffffff",
-            "surface-container-highest": "#e0e3e6", "on-surface": "#191c1e",
-            "on-surface-variant": "#454652", "primary": "#24389c",
-            "primary-container": "#3f51b5", "on-primary": "#ffffff",
-            "secondary": "#006a60", "secondary-container": "#85f6e5",
-            "on-secondary-container": "#007166", "outline": "#757684",
-            "outline-variant": "#c5c5d4", "error": "#ba1a1a"
-        }}}}
+                        "surface": "#f7f9fc", "surface-container": "#eceef1",
+                        "surface-container-low": "#f2f4f7", "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e0e3e6", "on-surface": "#191c1e",
+                        "on-surface-variant": "#454652", "primary": "#24389c",
+                        "primary-container": "#3f51b5", "on-primary": "#ffffff",
+                        "secondary": "#006a60", "secondary-container": "#85f6e5",
+                        "on-secondary-container": "#007166", "outline": "#757684",
+                        "outline-variant": "#c5c5d4", "error": "#ba1a1a"
+                    }}}}
     </script>
     <style>
         .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
@@ -44,9 +44,40 @@
     }
 %>
 
-<%@ include file="/WEB-INF/jsp/fragments/topnav.jsp" %>
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-slate-50 py-6 space-y-4 z-50">
+    <div class="px-6 mb-4">
+        <h2 class="text-lg font-extrabold text-indigo-900 tracking-tight" style="font-family:'Manrope',sans-serif">OlwShare</h2>
+        <p class="text-xs text-slate-500">Administración</p>
+    </div>
+    <nav class="flex-1 space-y-1 px-4">
+        <a href="${pageContext.request.contextPath}/dashboardAdmin"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            <span class="material-symbols-outlined">dashboard</span>
+            Panel Principal
+        </a>
+        <a href="${pageContext.request.contextPath}/materiales"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            <span class="material-symbols-outlined">library_books</span>
+            Gestión de Materiales
+        </a>
+        <a href="${pageContext.request.contextPath}/usuarios"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
+            <span class="material-symbols-outlined">manage_accounts</span>
+            Gestión de Cuentas
+        </a>
+    </nav>
+    <div class="px-4 mt-auto">
+        <a href="${pageContext.request.contextPath}/logout"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-error hover:bg-red-50 transition-all">
+            <span class="material-symbols-outlined">logout</span>
+            Cerrar Sesión
+        </a>
+    </div>
+</aside>
+
+
 <% request.setAttribute("activeMenu", "cuentas"); %>
-<%@ include file="/WEB-INF/jsp/fragments/sidebar.jsp" %>
+
 
 <main class="ml-64 min-h-screen pt-16 flex flex-col items-center justify-center p-8">
 
@@ -151,5 +182,19 @@
     <div class="fixed top-20 right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
     <div class="fixed bottom-20 left-40 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 </main>
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 flex justify-around items-center h-16 px-4 z-50">
+    <a href="${pageContext.request.contextPath}/dashboardAdmin" class="flex flex-col items-center justify-center text-slate-400">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Inicio</span>
+    </a>
+    <a href="${pageContext.request.contextPath}/materiales" class="flex flex-col items-center justify-center text-slate-400">
+        <span class="material-symbols-outlined">library_books</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Materiales</span>
+    </a>
+    <a href="${pageContext.request.contextPath}/usuarios" class="flex flex-col items-center justify-center text-indigo-700">
+        <span class="material-symbols-outlined">manage_accounts</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Cuentas</span>
+    </a>
+</nav>
 </body>
 </html>

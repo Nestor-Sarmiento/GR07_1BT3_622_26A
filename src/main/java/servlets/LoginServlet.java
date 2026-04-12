@@ -43,11 +43,10 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("adminLogueado", adminOpt.get());
         session.setMaxInactiveInterval(30 * 60);
 
-        resp.sendRedirect(req.getContextPath() + "/usuarios");
+        resp.sendRedirect(req.getContextPath() + "/dashboardAdmin");
     }
 
     private String value(String input) {
         return input == null ? "" : input.trim();
     }
 }
-

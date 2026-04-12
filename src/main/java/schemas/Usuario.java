@@ -38,7 +38,9 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
     private String nombre;
+    private String segundoNombre;
     private String apellido;
+    private String segundoApellido;
 
     @Enumerated(EnumType.STRING)
     private Rol rol;

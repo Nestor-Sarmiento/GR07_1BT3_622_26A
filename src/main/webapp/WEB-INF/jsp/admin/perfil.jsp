@@ -75,26 +75,27 @@
 <div class="flex pt-16">
 
     <%-- ── Sidebar ── --%>
-    <aside class="h-screen w-64 fixed left-0 top-16 bg-slate-50 flex flex-col p-4 space-y-2 hidden lg:flex">
-        <div class="mb-8 px-2">
-            <div class="text-lg font-extrabold text-indigo-900" style="font-family:'Manrope',sans-serif">Admin Panel</div>
-            <div class="text-xs text-slate-500">OlwShare</div>
+    <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-slate-50 py-6 space-y-4 z-50">
+        <div class="px-6 mb-4">
+            <h2 class="text-lg font-extrabold text-indigo-900 tracking-tight" style="font-family:'Manrope',sans-serif">OlwShare</h2>
+            <p class="text-xs text-slate-500">Administración</p>
         </div>
-        <nav class="flex-grow space-y-1">
-            <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-200/50 hover:translate-x-1 transition-transform duration-200 text-sm rounded-lg"
-               href="${pageContext.request.contextPath}/usuarios">
-                <span class="material-symbols-outlined">manage_accounts</span>
-                Gestión de Cuentas
-            </a>
-            <a class="flex items-center gap-3 px-3 py-2 text-indigo-900 font-semibold bg-white rounded-lg shadow-sm hover:translate-x-1 transition-transform duration-200 text-sm"
-               href="${pageContext.request.contextPath}/perfil">
-                <span class="material-symbols-outlined">settings</span>
+        <nav class="flex-1 space-y-1 px-4">
+            <a href="${pageContext.request.contextPath}/perfil"
+               class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+                <span class="material-symbols-outlined">dashboard</span>
                 Mi Perfil
             </a>
+
+            <a href="${pageContext.request.contextPath}/dashboardAdmin"
+               class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+                <span class="material-symbols-outlined">dashboard</span>
+                Panel Principal
+            </a>
         </nav>
-        <div class="pt-4 mt-auto border-t border-slate-200">
-            <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-200/50 hover:translate-x-1 transition-transform duration-200 text-sm rounded-lg"
-               href="${pageContext.request.contextPath}/logout">
+        <div class="px-4 mt-auto">
+            <a href="${pageContext.request.contextPath}/logout"
+               class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-error hover:bg-red-50 transition-all">
                 <span class="material-symbols-outlined">logout</span>
                 Cerrar Sesión
             </a>
@@ -303,21 +304,18 @@
 </div>
 
 <%-- Mobile Bottom NavBar --%>
-<nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-100 h-16 flex justify-around items-center px-4 z-50">
-    <a class="text-slate-400 flex flex-col items-center gap-1"
-       href="${pageContext.request.contextPath}/usuarios">
-        <span class="material-symbols-outlined">manage_accounts</span>
-        <span class="text-[10px]">Cuentas</span>
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 flex justify-around items-center h-16 px-4 z-50">
+    <a href="${pageContext.request.contextPath}/perfil" class="flex flex-col items-center justify-center text-slate-400">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Inicio</span>
     </a>
-    <a class="text-indigo-900 flex flex-col items-center gap-1 font-bold"
-       href="${pageContext.request.contextPath}/perfil">
-        <span class="material-symbols-outlined">settings</span>
-        <span class="text-[10px]">Perfil</span>
+    <a href="${pageContext.request.contextPath}/materiales" class="flex flex-col items-center justify-center text-slate-400">
+        <span class="material-symbols-outlined">library_books</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Materiales</span>
     </a>
-    <a class="text-slate-400 flex flex-col items-center gap-1"
-       href="${pageContext.request.contextPath}/logout">
-        <span class="material-symbols-outlined">logout</span>
-        <span class="text-[10px]">Salir</span>
+    <a href="${pageContext.request.contextPath}/dashboardAdmin" class="flex flex-col items-center justify-center text-slate-400">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Cuentas</span>
     </a>
 </nav>
 

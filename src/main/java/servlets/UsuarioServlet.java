@@ -19,7 +19,7 @@ public class UsuarioServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setAttribute("usuarios", usuarioRepository.findAll());
-        req.getRequestDispatcher("/WEB-INF/jsp/usuarios.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/jsp/admin/usuarios.jsp").forward(req, resp);
     }
 
     @Override
@@ -37,4 +37,3 @@ public class UsuarioServlet extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/usuarios");
     }
 }
-
