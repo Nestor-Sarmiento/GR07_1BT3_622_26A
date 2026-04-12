@@ -1,9 +1,7 @@
 package web;
 
-import Enums.Estados;
 import repositories.AdminRepository;
 import repositories.JpaUtil;
-import schemas.Admin;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
@@ -13,7 +11,7 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        seedInitialAdmin();
+        seedInitialAdmin(sce);
     }
 
     @Override
@@ -21,20 +19,19 @@ public class AppContextListener implements ServletContextListener {
         JpaUtil.shutdown();
     }
 
-    private void seedInitialAdmin() {
-        String email = JpaUtil.getConfigValue("ADMIN_EMAIL", "admin@olwshare.com");
-        String password = JpaUtil.getConfigValue("ADMIN_PASSWORD", "OlwShare2026!");
-        String nombre = JpaUtil.getConfigValue("ADMIN_NOMBRE", "Administrador");
-        String apellido = JpaUtil.getConfigValue("ADMIN_APELLIDO", "Sistema");
+    private void seedInitialAdmin(ServletContextEvent sce) {
+        String email = JpaUtil.getConfigValue("ADMIN_EMAIL");
+        String password = JpaUtil.getConfigValue("ADMIN_PASSWORD");
+        String nombre = JpaUtil.getConfigValue("ADMIN_NOMBRE");
+        String apellido = JpaUtil.getConfigValue("ADMIN_APELLIDO");
 
-        AdminRepository adminRepository = new AdminRepository();
-        if (adminRepository.existsByEmail(email)) {
+        if (email.isBlank() || password.isBlank() || nombre.isBlank() || apellido.isBlank()) {
             return;
         }
 
-        Admin admin = new Admin(null, email, nombre, apellido, password, Estados.ACTIVO);
-        admin.setMustChangePassword(false);
-        adminRepository.save(admin);
+        AdminRepository adminRepository = new AdminRepository();
+        adminRepository.upsertInitialAdmin(email, password, nombre, apellido);
+        sce.getServletContext().log("Admin inicial sincronizado para: " + email);
     }
 }
 

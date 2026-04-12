@@ -5,14 +5,20 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public final class JpaUtil {
+    private static final Logger LOGGER = Logger.getLogger(JpaUtil.class.getName());
     private static final Map<String, String> DOTENV = loadDotenv();
     private static final EntityManagerFactory EMF = Persistence.createEntityManagerFactory("pdciaePU",
             buildOverrides());
@@ -39,6 +45,9 @@ public final class JpaUtil {
             }
 
             overrides.put("hibernate.dialect", firstNonBlank(env("HIBERNATE_DIALECT"), "org.hibernate.dialect.PostgreSQLDialect"));
+            LOGGER.info("JPA configurado con base externa: " + safeDbUrl(dbUrl));
+        } else {
+            LOGGER.warning("No se encontro DB_URL/DATABASE_URL. Se usara la configuracion por defecto de persistence.xml.");
         }
 
         String ddlAuto = env("HIBERNATE_HBM2DDL_AUTO");
@@ -66,12 +75,14 @@ public final class JpaUtil {
 
     private static Map<String, String> loadDotenv() {
         Map<String, String> values = new HashMap<>();
-        Path path = Path.of(".env");
+        Path path = findDotenvPath();
         if (!Files.exists(path)) {
+            LOGGER.info("No se encontro archivo .env en rutas candidatas.");
             return values;
         }
 
         try {
+            LOGGER.info("Cargando variables desde .env: " + path.toAbsolutePath());
             for (String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {
                 String trimmed = line.trim();
                 if (trimmed.startsWith("#") || !trimmed.contains("=")) {
@@ -98,6 +109,51 @@ public final class JpaUtil {
         return values;
     }
 
+    private static Path findDotenvPath() {
+        List<Path> seeds = new ArrayList<>();
+        seeds.add(Path.of("").toAbsolutePath());
+
+        addIfPresent(seeds, systemPath("user.dir"));
+        addIfPresent(seeds, systemPath("catalina.base"));
+        addIfPresent(seeds, classLocationPath());
+
+        for (Path seed : seeds) {
+            Path current = seed;
+            for (int i = 0; i < 20 && current != null; i++) {
+                Path candidate = current.resolve(".env");
+                if (Files.exists(candidate)) {
+                    return candidate;
+                }
+                current = current.getParent();
+            }
+        }
+
+        return Path.of(".env").toAbsolutePath();
+    }
+
+    private static Path systemPath(String key) {
+        String value = System.getProperty(key);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return Paths.get(value).toAbsolutePath();
+    }
+
+    private static Path classLocationPath() {
+        try {
+            return Paths.get(JpaUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toAbsolutePath();
+        } catch (URISyntaxException | NullPointerException ex) {
+            return null;
+        }
+    }
+
+    private static void addIfPresent(List<Path> seeds, Path candidate) {
+        if (candidate != null && !seeds.contains(candidate)) {
+            seeds.add(candidate);
+        }
+    }
+
+
     private static String firstNonBlank(String... values) {
         for (String value : values) {
             if (value != null && !value.isBlank()) {
@@ -105,6 +161,11 @@ public final class JpaUtil {
             }
         }
         return "";
+    }
+
+    private static String safeDbUrl(String dbUrl) {
+        int paramsIndex = dbUrl.indexOf('?');
+        return paramsIndex >= 0 ? dbUrl.substring(0, paramsIndex) : dbUrl;
     }
 
     public static String getConfigValue(String key) {
