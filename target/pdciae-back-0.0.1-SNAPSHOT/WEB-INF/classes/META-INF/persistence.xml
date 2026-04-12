@@ -6,8 +6,8 @@
     <persistence-unit name="pdciaePU" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <class>epn.schemas.Usuario</class>
-        <class>epn.schemas.Admin</class>
+        <class>schemas.Usuario</class>
+        <class>schemas.Admin</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
