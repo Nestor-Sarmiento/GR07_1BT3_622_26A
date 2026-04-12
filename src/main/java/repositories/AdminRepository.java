@@ -12,22 +12,17 @@ import java.util.Optional;
 public class AdminRepository {
 
     public boolean existsByEmail(String email) {
-        EntityManager em = JpaUtil.createEntityManager();
-        try {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
             Long count = em.createQuery(
-                    "SELECT COUNT(u) FROM Usuario u WHERE u.email = :email AND u.rol = :rol", Long.class)
+                    "SELECT COUNT(u) FROM Usuario u WHERE u.email = :email", Long.class)
                     .setParameter("email", email)
-                    .setParameter("rol", Rol.ADMIN)
                     .getSingleResult();
             return count != null && count > 0;
-        } finally {
-            em.close();
         }
     }
 
     public Optional<Admin> findByEmail(String email) {
-        EntityManager em = JpaUtil.createEntityManager();
-        try {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
             List<Usuario> result = em.createQuery(
                     "SELECT u FROM Usuario u WHERE u.email = :email AND u.rol = :rol", Usuario.class)
                     .setParameter("email", email)
@@ -38,26 +33,23 @@ public class AdminRepository {
                 return Optional.empty();
             }
             return Optional.of((Admin) result.get(0));
-        } finally {
-            em.close();
         }
     }
 
     public Admin save(Admin admin) {
-        EntityManager em = JpaUtil.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            Admin managed = em.merge(admin);
-            tx.commit();
-            return managed;
-        } catch (RuntimeException ex) {
-            if (tx.isActive()) {
-                tx.rollback();
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            EntityTransaction tx = em.getTransaction();
+            try {
+                tx.begin();
+                Admin managed = em.merge(admin);
+                tx.commit();
+                return managed;
+            } catch (RuntimeException ex) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+                throw ex;
             }
-            throw ex;
-        } finally {
-            em.close();
         }
     }
 }
