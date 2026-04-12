@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class Admin extends Usuario {
 
 	public Admin(Long id_usuario, String email, String nombre, String apellido, String password, Estados estado) {
-		super(id_usuario, email, nombre, apellido, Rol.ADMIN, password, estado, false);
+		super(id_usuario, email, nombre, null, apellido, null, Rol.ADMIN, password, estado, false);
 		setRolAdmin();
 	}
 
