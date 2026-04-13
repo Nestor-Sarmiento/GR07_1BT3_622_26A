@@ -2,9 +2,9 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%-- =============================================
      Vista: usuarios.jsp  (reemplaza la versión básica del back)
-     Servlet: UsuarioServlet  →  GET /usuarios  ✅ YA EXISTE
+     Servlet: EstudianteServlet  →  GET /estudiantes
      Atributos del request:
-       - usuarios: List<Usuario>
+       - estudiantes: List<Usuario>
      Atributos de session:
        - adminLogueado: Usuario  (protección de ruta)
      ============================================= --%>
@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Gestión de Cuentas - OlwShare</title>
+    <title>Gestión de Estudiantes - OlwShare</title>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -38,7 +38,7 @@
 
 <%-- Protección de ruta --%>
 <c:if test="${empty sessionScope.adminLogueado}">
-    <c:redirect url="/login.jsp"/>
+    <c:redirect url="/login"/>
 </c:if>
 
 <%-- ── Top Nav ── --%>
@@ -51,7 +51,7 @@
         <span class="material-symbols-outlined">library_books</span>
         <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Materiales</span>
     </a>
-    <a href="${pageContext.request.contextPath}/usuarios" class="flex flex-col items-center justify-center text-indigo-700">
+    <a href="${pageContext.request.contextPath}/estudiantes" class="flex flex-col items-center justify-center text-indigo-700">
         <span class="material-symbols-outlined">manage_accounts</span>
         <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Cuentas</span>
     </a>
@@ -69,18 +69,18 @@
             <span class="material-symbols-outlined">dashboard</span>
             Panel Principal
         </a>
-        <a href="${pageContext.request.contextPath}/materiales"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
-            <span class="material-symbols-outlined">library_books</span>
-            Gestión de Materiales
-        </a>
+         <a href="${pageContext.request.contextPath}/materiales"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+             <span class="material-symbols-outlined">library_books</span>
+             Gestión de Materiales
+         </a>
          <a href="${pageContext.request.contextPath}/usuarios"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
              <span class="material-symbols-outlined">manage_accounts</span>
              Gestión de Cuentas
          </a>
          <a href="${pageContext.request.contextPath}/estudiantes"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
              <span class="material-symbols-outlined">school</span>
              Gestión de Estudiantes
          </a>
@@ -115,8 +115,8 @@
 
         <%-- Header --%>
         <section class="space-y-2">
-            <h1 class="text-4xl font-extrabold text-on-surface tracking-tight">Gestión de Cuentas</h1>
-            <p class="text-on-surface-variant text-lg">Administración de perfiles y roles del sistema</p>
+            <h1 class="text-4xl font-extrabold text-on-surface tracking-tight">Gestión de Estudiantes</h1>
+            <p class="text-on-surface-variant text-lg">Administración de cuentas de estudiantes</p>
         </section>
 
         <%-- ── Tabla ── --%>
@@ -134,11 +134,11 @@
                 </thead>
                 <tbody class="divide-y divide-surface-container">
                 <c:choose>
-                    <c:when test="${not empty usuarios}">
-                        <c:forEach var="u" items="${usuarios}">
+                    <c:when test="${not empty estudiantes}">
+                        <c:forEach var="u" items="${estudiantes}">
                             <tr class="hover:bg-surface-container-low transition-colors duration-200">
                                 <td class="px-8 py-5">
-                                    <a href="${pageContext.request.contextPath}/usuario/detalle?id=${u.id_usuario}"
+                                    <a href="${pageContext.request.contextPath}/estudiante/detalle?id=${u.id_usuario}"
                                        class="text-on-surface font-semibold hover:text-primary transition-colors cursor-pointer"
                                        style="font-family:'Manrope',sans-serif">
                                         <c:out value="${u.nombre}"/>
@@ -161,7 +161,7 @@
                                         </span>
                                 </td>
                                 <td class="px-8 py-5 text-center">
-                                    <a href="${pageContext.request.contextPath}/usuario/detalle?id=${u.id_usuario}"
+                                    <a href="${pageContext.request.contextPath}/estudiante/detalle?id=${u.id_usuario}"
                                        class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
                                         <span class="material-symbols-outlined text-sm">manage_accounts</span>
                                         Gestionar
@@ -176,7 +176,7 @@
                                 <div class="flex flex-col items-center gap-3 opacity-40">
                                     <span class="material-symbols-outlined text-6xl">person_search</span>
                                     <p class="text-lg font-semibold" style="font-family:'Manrope',sans-serif">
-                                        No hay usuarios registrados
+                                        No hay estudiantes registrados
                                     </p>
                                 </div>
                             </td>
@@ -187,14 +187,14 @@
             </table>
         </div>
 
-        <%-- ── Botón crear admin ── --%>
+        <%-- ── Botón crear estudiante ── --%>
         <div class="flex justify-end">
-            <a href="${pageContext.request.contextPath}/usuario/crear"
+            <a href="${pageContext.request.contextPath}/estudiante/crear"
                class="inline-flex items-center gap-3 h-14 px-8 bg-gradient-to-br from-primary to-primary-container
                       text-on-primary rounded-lg font-bold shadow-lg hover:shadow-xl transition-all active:scale-95"
                style="font-family:'Manrope',sans-serif">
                 <span class="material-symbols-outlined">person_add</span>
-                Crear Cuenta de Administrador
+                Crear Cuenta de Estudiante
             </a>
         </div>
 

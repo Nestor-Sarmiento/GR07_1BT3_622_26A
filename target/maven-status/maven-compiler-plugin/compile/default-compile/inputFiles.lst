@@ -7,8 +7,13 @@ C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\schemas\Admin.java
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\schemas\Usuario.java
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\DashboardAdminServlet.java
+C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\EstudianteCrearServlet.java
+C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\EstudianteDetalleServlet.java
+C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\EstudianteEditarServlet.java
+C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\EstudianteServlet.java
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\LoginServlet.java
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\LogoutServlet.java
+C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\MaterialDetalleServlet.java
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\MaterialServlet.java
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\PerfilServlet.java
 C:\Users\aaron\Escritorio\ChauquisPro\MetodologiasAgiles\OShareT2\GR07_1BT3_622_26A\src\main\java\servlets\UsuarioCrearServlet.java

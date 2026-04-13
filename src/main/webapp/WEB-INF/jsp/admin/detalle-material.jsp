@@ -66,12 +66,17 @@
             <span class="material-symbols-outlined">library_books</span>
             Gestión de Materiales
         </a>
-        <a href="${pageContext.request.contextPath}/usuarios"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
-            <span class="material-symbols-outlined">manage_accounts</span>
-            Gestión de Cuentas
-        </a>
-    </nav>
+         <a href="${pageContext.request.contextPath}/usuarios"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+             <span class="material-symbols-outlined">manage_accounts</span>
+             Gestión de Cuentas
+         </a>
+         <a href="${pageContext.request.contextPath}/estudiantes"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+             <span class="material-symbols-outlined">school</span>
+             Gestión de Estudiantes
+         </a>
+     </nav>
     <div class="px-4 mt-auto">
         <a href="${pageContext.request.contextPath}/logout"
            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-error hover:bg-red-50 transition-all">

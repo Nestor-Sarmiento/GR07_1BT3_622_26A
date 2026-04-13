@@ -209,6 +209,11 @@
         <span class="material-symbols-outlined">manage_accounts</span>
         <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Cuentas</span>
     </a>
+    <a href="${pageContext.request.contextPath}/estudiantes"
+       class="flex flex-col items-center justify-center text-slate-400">
+        <span class="material-symbols-outlined">school</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Estudiantes</span>
+    </a>
 </nav>
 
 </body>

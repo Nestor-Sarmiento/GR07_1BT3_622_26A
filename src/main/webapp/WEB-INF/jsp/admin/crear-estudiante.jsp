@@ -2,16 +2,16 @@
 <%@ page import="schemas.Usuario" %>
 <%-- =============================================
      Vista: crear-admin.jsp
-     Servlet que la llama: UsuarioCrearServlet → GET /usuario/crear
-     POST /usuario/crear → recibe nombre, apellido, email
-       El servlet crea un Admin con password temporal y redirige a /usuarios con mensaje
+     Servlet que la llama: EstudianteCrearServlet → GET /estudiante/crear
+     POST /estudiante/crear → recibe nombre, apellido, email
+       El servlet crea un Estudiante con password temporal y redirige a /estudiantes con mensaje
      ============================================= --%>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Crear Administrador - OlwShare</title>
+    <title>Crear Estudiante - OlwShare</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -61,12 +61,12 @@
             Gestión de Materiales
         </a>
          <a href="${pageContext.request.contextPath}/usuarios"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
              <span class="material-symbols-outlined">manage_accounts</span>
              Gestión de Cuentas
          </a>
          <a href="${pageContext.request.contextPath}/estudiantes"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
              <span class="material-symbols-outlined">school</span>
              Gestión de Estudiantes
          </a>
@@ -106,10 +106,10 @@
     <div class="w-full max-w-lg bg-surface-container-lowest rounded-xl p-10 editorial-shadow">
         <header class="mb-10 text-center">
             <h1 class="text-3xl font-extrabold text-on-surface tracking-tight" style="font-family:'Manrope',sans-serif">
-                Crear Nueva Cuenta de Administrador
+                Crear Nueva Cuenta de Estudiante
             </h1>
             <p class="mt-2 text-outline text-sm">
-                Complete los datos. El sistema generará y enviará una contraseña temporal al correo del nuevo administrador.
+                Complete los datos. El sistema generará y enviará una contraseña temporal al correo del nuevo estudiante.
             </p>
         </header>
 
@@ -120,13 +120,13 @@
               - apellido (String)
               - email    (String)
             El servlet:
-              1. Valida que el email no exista (adminRepo.existsByEmail)
+              1. Valida que el email no exista
               2. Genera password temporal
-              3. Crea Admin con estado ACTIVO
+              3. Crea Estudiante con estado ACTIVO
               4. Envía email con credenciales
-              5. Redirige a /usuarios con mensaje="Cuenta creada..."
+              5. Redirige a /estudiantes con mensaje="Cuenta creada..."
         --%>
-        <form action="${pageContext.request.contextPath}/usuario/crear" method="post" class="space-y-6">
+        <form action="${pageContext.request.contextPath}/estudiante/crear" method="post" class="space-y-6">
 
             <div class="grid grid-cols-2 gap-6">
                 <%-- Nombre --%>
@@ -153,7 +153,7 @@
                 <label class="block text-xs font-semibold text-primary uppercase tracking-wider ml-1" for="email">Email</label>
                 <input class="w-full px-4 py-3 bg-surface-container-highest border-none rounded-lg focus:ring-2 focus:ring-indigo-300 text-on-surface placeholder:text-outline-variant outline-none transition-all"
                        id="email" name="email" type="email"
-                       placeholder="admin@olwshare.com"
+                       placeholder="estudiante@olwshare.com"
                        value="${not empty param.email ? param.email : ''}"
                        required/>
             </div>
@@ -169,16 +169,16 @@
             </div>
 
             <div class="text-center">
-                <a href="${pageContext.request.contextPath}/usuarios"
+                <a href="${pageContext.request.contextPath}/estudiantes"
                    class="text-xs text-outline hover:text-primary transition-colors">
-                    ← Volver a Gestión de Cuentas
+                    ← Volver a Gestión de Estudiantes
                 </a>
             </div>
         </form>
 
         <footer class="mt-8 text-center">
             <p class="text-xs text-outline leading-relaxed">
-                El usuario recibirá sus credenciales temporales por correo y deberá cambiarlas en su primer ingreso.
+                El estudiante recibirá sus credenciales temporales por correo y deberá cambiarlas en su primer ingreso.
             </p>
         </footer>
     </div>
@@ -196,9 +196,9 @@
         <span class="material-symbols-outlined">library_books</span>
         <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Materiales</span>
     </a>
-    <a href="${pageContext.request.contextPath}/usuarios" class="flex flex-col items-center justify-center text-indigo-700">
-        <span class="material-symbols-outlined">manage_accounts</span>
-        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Cuentas</span>
+    <a href="${pageContext.request.contextPath}/estudiantes" class="flex flex-col items-center justify-center text-indigo-700">
+        <span class="material-symbols-outlined">school</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Estudiantes</span>
     </a>
 </nav>
 </body>
