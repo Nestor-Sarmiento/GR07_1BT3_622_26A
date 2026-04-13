@@ -2,9 +2,9 @@
 <%@ page import="schemas.Usuario" %>
 <%-- =============================================
      Vista: detalle-usuario.jsp
-     Servlet que la llama: UsuarioDetalleServlet → GET /usuario/detalle?id=X
+     Servlet que la llama: EstudianteDetalleServlet → GET /estudiante/detalle?id=X
      Atributos recibidos del request:
-       - usuarioDetalle: Usuario   (el usuario a ver/editar)
+       - estudianteDetalle: Usuario   (el usuario a ver/editar)
      Atributos de session:
        - adminLogueado: Usuario
      ============================================= --%>
@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Detalle de Cuenta - OlwShare</title>
+    <title>Detalle de Estudiante - OlwShare</title>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -43,9 +43,9 @@
         response.sendRedirect(request.getContextPath() + "/login");
         return;
     }
-    Usuario u = (Usuario) request.getAttribute("usuarioDetalle");
+    Usuario u = (Usuario) request.getAttribute("estudianteDetalle");
     if (u == null) {
-        response.sendRedirect(request.getContextPath() + "/usuarios");
+        response.sendRedirect(request.getContextPath() + "/estudiantes");
         return;
     }
     boolean activo = u.getEstado() != null && "ACTIVO".equals(u.getEstado().name());
@@ -62,18 +62,18 @@
             <span class="material-symbols-outlined">dashboard</span>
             Panel Principal
         </a>
-        <a href="${pageContext.request.contextPath}/materiales"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
-            <span class="material-symbols-outlined">library_books</span>
-            Gestión de Materiales
-        </a>
+         <a href="${pageContext.request.contextPath}/materiales"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+             <span class="material-symbols-outlined">library_books</span>
+             Gestión de Materiales
+         </a>
          <a href="${pageContext.request.contextPath}/usuarios"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
              <span class="material-symbols-outlined">manage_accounts</span>
              Gestión de Cuentas
          </a>
          <a href="${pageContext.request.contextPath}/estudiantes"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
              <span class="material-symbols-outlined">school</span>
              Gestión de Estudiantes
          </a>
@@ -111,7 +111,7 @@
 
         <%-- ── Breadcrumb ── --%>
         <div class="flex items-center gap-2 text-sm text-on-surface-variant">
-            <a href="${pageContext.request.contextPath}/usuarios" class="hover:text-primary transition-colors">Gestión de Cuentas</a>
+            <a href="${pageContext.request.contextPath}/estudiantes" class="hover:text-primary transition-colors">Gestión de Estudiantes</a>
             <span class="material-symbols-outlined text-sm">chevron_right</span>
             <span class="text-on-surface font-medium"><%= u.getNombre() %> <%= u.getApellido() %></span>
         </div>
@@ -151,7 +151,7 @@
                       - Actualiza en BD con usuarioRepository.save(usuario)
                       - Redirige a /usuario/detalle?id=X con mensaje de éxito
                 --%>
-                <form action="${pageContext.request.contextPath}/usuario/editar" method="post" class="space-y-5">
+                <form action="${pageContext.request.contextPath}/estudiante/editar" method="post" class="space-y-5">
                     <input type="hidden" name="id" value="<%= u.getId_usuario() %>"/>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -212,7 +212,7 @@
                 </form>
 
                 <%-- Form oculto para verificar email --%>
-                <form id="form-verificar" action="${pageContext.request.contextPath}/usuario/verificar-email" method="post" class="hidden">
+                <form id="form-verificar" action="${pageContext.request.contextPath}/estudiante/verificar-email" method="post" class="hidden">
                     <input type="hidden" name="id" value="<%= u.getId_usuario() %>"/>
                 </form>
             </div>
@@ -231,7 +231,7 @@
                             Parámetros: id, estado = ACTIVO
                             El servlet actualiza usuario.estado y redirige con mensaje
                         --%>
-                        <form action="${pageContext.request.contextPath}/usuario/toggleEstado" method="post">
+                        <form action="${pageContext.request.contextPath}/estudiante/toggleEstado" method="post">
                             <input type="hidden" name="id" value="<%= u.getId_usuario() %>"/>
                             <input type="hidden" name="estado" value="ACTIVO"/>
                             <button type="submit"
@@ -248,7 +248,7 @@
                             POST /usuario/toggleEstado
                             Parámetros: id, estado = INACTIVO
                         --%>
-                        <form action="${pageContext.request.contextPath}/usuario/toggleEstado" method="post">
+                        <form action="${pageContext.request.contextPath}/estudiante/toggleEstado" method="post">
                             <input type="hidden" name="id" value="<%= u.getId_usuario() %>"/>
                             <input type="hidden" name="estado" value="INACTIVO"/>
                             <button type="submit"
@@ -286,10 +286,10 @@
                 </div>
 
                 <%-- Volver --%>
-                <a href="${pageContext.request.contextPath}/usuarios"
+                <a href="${pageContext.request.contextPath}/estudiantes"
                    class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-primary transition-colors">
                     <span class="material-symbols-outlined text-sm">arrow_back</span>
-                    Volver a Gestión de Cuentas
+                    Volver a Gestión de Estudiantes
                 </a>
             </div>
         </div>
@@ -304,9 +304,9 @@
         <span class="material-symbols-outlined">library_books</span>
         <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Materiales</span>
     </a>
-    <a href="${pageContext.request.contextPath}/usuarios" class="flex flex-col items-center justify-center text-indigo-700">
-        <span class="material-symbols-outlined">manage_accounts</span>
-        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Cuentas</span>
+    <a href="${pageContext.request.contextPath}/estudiantes" class="flex flex-col items-center justify-center text-indigo-700">
+        <span class="material-symbols-outlined">school</span>
+        <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Estudiantes</span>
     </a>
 </nav>
 </body>
