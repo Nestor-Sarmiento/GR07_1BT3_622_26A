@@ -8,6 +8,7 @@
 
         <class>schemas.Usuario</class>
         <class>schemas.Admin</class>
+        <class>schemas.Material</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>

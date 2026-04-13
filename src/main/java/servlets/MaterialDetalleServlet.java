@@ -1,13 +1,17 @@
 package servlets;
 
+import Enums.EstadoMaterial;
+import repositories.MaterialRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import schemas.Material;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * MaterialDetalleServlet
@@ -25,6 +29,7 @@ import java.io.IOException;
  */
 @WebServlet(name = "materialDetalleServlet", urlPatterns = {"/material/detalle", "/material/accion"})
 public class MaterialDetalleServlet extends HttpServlet {
+    private final MaterialRepository materialRepository = new MaterialRepository();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -36,13 +41,21 @@ public class MaterialDetalleServlet extends HttpServlet {
             return;
         }
 
-        // TODO: cuando exista MaterialRepository, descomentar y usar:
-        // String idParam = req.getParameter("id");
-        // if (idParam != null) {
-        //     Long id = Long.parseLong(idParam);
-        //     Material material = materialRepository.findById(id);
-        //     req.setAttribute("material", material);
-        // }
+        Long id = parseLong(req.getParameter("id"));
+        if (id == null) {
+            flash(session, "flashError", "No se pudo identificar el material.");
+            resp.sendRedirect(req.getContextPath() + "/materiales");
+            return;
+        }
+
+        Optional<Material> materialOpt = materialRepository.findById(id);
+        if (materialOpt.isEmpty()) {
+            flash(session, "flashError", "El material seleccionado no existe.");
+            resp.sendRedirect(req.getContextPath() + "/materiales");
+            return;
+        }
+
+        req.setAttribute("material", materialOpt.get());
 
         req.getRequestDispatcher("/WEB-INF/jsp/admin/detalle-material.jsp").forward(req, resp);
     }
@@ -57,26 +70,50 @@ public class MaterialDetalleServlet extends HttpServlet {
             return;
         }
 
-        String idParam = req.getParameter("id");
         String accion  = req.getParameter("accion");
 
-        // TODO: cuando exista MaterialRepository, implementar:
-        // Long id = Long.parseLong(idParam);
-        // if ("ACEPTAR".equals(accion)) {
-        //     materialRepository.updateEstado(id, "ACEPTADO");
-        //     req.setAttribute("mensaje", "Material aceptado correctamente.");
-        // } else if ("RECHAZAR".equals(accion)) {
-        //     materialRepository.updateEstado(id, "RECHAZADO");
-        //     req.setAttribute("mensaje", "Material rechazado correctamente.");
-        // }
-
-        // Por ahora solo redirige de vuelta a materiales con mensaje
-        if ("ACEPTAR".equals(accion)) {
-            req.getSession().setAttribute("flashMensaje", "Material aceptado correctamente.");
-        } else if ("RECHAZAR".equals(accion)) {
-            req.getSession().setAttribute("flashMensaje", "Material rechazado correctamente.");
+        Long id = parseLong(req.getParameter("id"));
+        if (id == null) {
+            flash(session, "flashError", "No se pudo identificar el material a actualizar.");
+            resp.sendRedirect(req.getContextPath() + "/materiales");
+            return;
         }
 
+        EstadoMaterial nuevoEstado;
+        String mensaje;
+        if ("ACEPTAR".equals(accion)) {
+            nuevoEstado = EstadoMaterial.APROBADO;
+            mensaje = "Material aprobado correctamente.";
+        } else if ("RECHAZAR".equals(accion)) {
+            nuevoEstado = EstadoMaterial.RECHAZADO;
+            mensaje = "Material rechazado correctamente.";
+        } else {
+            flash(session, "flashError", "Acción no válida para el material.");
+            resp.sendRedirect(req.getContextPath() + "/materiales");
+            return;
+        }
+
+        boolean actualizado = materialRepository.updateEstado(id, nuevoEstado);
+        if (!actualizado) {
+            flash(session, "flashError", "No se encontró el material para actualizar.");
+            resp.sendRedirect(req.getContextPath() + "/materiales");
+            return;
+        }
+
+        flash(session, "flashMensaje", mensaje);
+
         resp.sendRedirect(req.getContextPath() + "/materiales");
+    }
+
+    private void flash(HttpSession session, String key, String value) {
+        session.setAttribute(key, value);
+    }
+
+    private Long parseLong(String value) {
+        try {
+            return value == null ? null : Long.parseLong(value.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

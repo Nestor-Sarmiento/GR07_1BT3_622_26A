@@ -1,8 +1,11 @@
+schemas\Material.class
 servlets\UsuarioCrearServlet.class
 repositories\UsuarioRepository.class
+schemas\Material$MaterialBuilder.class
 repositories\AdminRepository.class
 schemas\Usuario.class
 servlets\EstudianteServlet.class
+repositories\MaterialRepository.class
 servlets\EstudianteCrearServlet.class
 servlets\EstudianteDetalleServlet.class
 servlets\PerfilServlet.class
@@ -10,6 +13,7 @@ servlets\UsuarioDetalleServlet.class
 web\AppContextListener.class
 schemas\Usuario$UsuarioBuilder.class
 servlets\EstudianteEditarServlet.class
+Enums\EstadoMaterial.class
 Enums\Rol.class
 servlets\LoginServlet.class
 servlets\UsuarioEditarServlet.class

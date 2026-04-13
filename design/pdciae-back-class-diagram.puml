@@ -3,9 +3,9 @@ skinparam style strictuml
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 
-title PDCIAE Back - Class Diagram
+title PDCIAE Back - Class Diagram (actualizado)
 
-package "epn.Enums" {
+package "Enums" {
   enum Rol {
     ADMIN
     ESTUDIANTE
@@ -17,225 +17,234 @@ package "epn.Enums" {
     INACTIVO
     POR_VERIFICAR
   }
-}
 
-package "epn.schemas" {
-  class Usuario {
-    - id_usuario: String
-    - email: String
-    - nombre: String
-    - apellido: String
-    - rol: Rol
-    - password: String
-    - estado: Estados
-    - mustChangePassword: boolean
-  }
-
-  class Admin {
-    + Admin(id_usuario: String, email: String, nombre: String, apellido: String, password: String, estado: Estados)
-  }
-
-  class Estudiante {
-    + Estudiante(id_usuario: String, email: String, nombre: String, apellido: String, password: String, estado: Estados)
-  }
-
-  class Tutor {
-    + Tutor(id_usuario: String, email: String, nombre: String, apellido: String, password: String, estado: Estados)
-  }
-
-  class Documento {
-    - id_documento: String
-    - nombreDocumento: String
-    - materia: String
-    - facultad: String
+  enum EstadoMaterial {
+    PENDIENTE
+    APROBADO
+    RECHAZADO
   }
 }
 
-package "epn.repositories" {
-  interface AdminRepository {
-    + existsByEmail(email: String): boolean
-    + findByEmail(email: String): Optional<Admin>
+package "schemas" {
+  class Usuario <<entity>> {
+    +id_usuario: Long
+    +email: String
+    +nombre: String
+    +segundoNombre: String
+    +apellido: String
+    +segundoApellido: String
+    +rol: Rol
+    +password: String
+    +estado: Estados
+    +mustChangePassword: boolean
   }
 
-  interface EstudianteRepository
-  interface TutorRepository
-  interface DocumentoRepository
-
-  interface "MongoRepository<Admin, String>" as MongoRepoAdmin
-  interface "MongoRepository<Estudiante, String>" as MongoRepoEstudiante
-  interface "MongoRepository<Tutor, String>" as MongoRepoTutor
-  interface "MongoRepository<Documento, String>" as MongoRepoDocumento
-}
-
-package "epn.services" {
-  class AuthResponse {
-    - token: String
-    - mustChangePassword: boolean
-    - message: String
+  class Admin <<entity>> {
+    +Admin(id_usuario: Long, email: String, nombre: String, apellido: String, password: String, estado: Estados)
   }
 
-  class PasswordGeneratorService {
-    + generateSecurePassword(): String
-  }
-
-  class EmailService {
-    + sendTemporaryPasswordEmail(recipientEmail: String, recipientName: String, temporaryPassword: String): void
-    + sendPasswordChangedEmail(recipientEmail: String, recipientName: String): void
-  }
-
-  class UserService {
-    - adminRepository: AdminRepository
-    - passwordEncoder: PasswordEncoder
-    - passwordGeneratorService: PasswordGeneratorService
-    - emailService: EmailService
-    + listarAdmins(): List<Admin>
-    + listarAdminsPaginado(pageable: Pageable): Page<Map<String, Object>>
-    + obtenerAdminPorId(id: String): Admin
-    + obtenerAdminPorEmail(email: String): Admin
-    + obtenerMisDatos(email: String): Map<String, String>
-    + crearAdmin(admin: Admin): Admin
-    + actualizarAdmin(id: String, adminActualizado: Admin): Admin
-    + actualizarMisDatos(email: String, adminActualizado: Admin): Admin
-    + changePassword(email: String, newPassword: String): void
-    + eliminarAdmin(id: String): void
-  }
-
-  class AuthService {
-    - adminRepository: AdminRepository
-    - passwordEncoder: PasswordEncoder
-    - jwtUtil: JwtUtil
-    + autenticar(email: String, passwordEnviado: String): AuthResponse
-  }
-
-  class DocumentoService {
-    - documentoRepository: DocumentoRepository
-    + listar(): List<Documento>
-    + obtenerPorId(id: String): Documento
-    + crear(documento: Documento): Documento
-    + actualizar(id: String, documentoActualizado: Documento): Documento
-    + eliminar(id: String): void
+  class Material <<entity>> {
+    +id: Long
+    +nombreArchivo: String
+    +titulo: String
+    +idMateria: Long
+    +nombreMateria: String
+    +usuario: String
+    +descripcion: String
+    +tipoArchivo: String
+    +fechaEnvio: LocalDateTime
+    +estado: EstadoMaterial
+    +costo: BigDecimal
   }
 }
 
-package "epn.controllers" {
-  class AdminController {
-    - userService: UserService
-    + obtenerMisDatos(): ResponseEntity<?>
-    + listar(pageable: Pageable): ResponseEntity<?>
-    + obtenerPorId(id: String): Admin
-    + crear(admin: Admin): ResponseEntity<?>
-    + actualizarMisDatos(admin: Admin): Admin
-    + eliminar(id: String): ResponseEntity<Void>
-    + healthCheck(): String
+package "repositories" {
+  class JpaUtil <<utility>> {
+    +getConfigValue(key: String): String
+    +getConfigValue(key: String, defaultValue: String): String
+    +createEntityManager(): EntityManager
+    +shutdown(): void
   }
 
-  class AuthController {
-    - authService: AuthService
-    - userService: UserService
-    + login(credentials: Map<String, String>): ResponseEntity<?>
-    + changePassword(request: Map<String, String>): ResponseEntity<?>
+  class UsuarioRepository <<repository>> {
+    +findAll(): List<Usuario>
+    +findById(id: Long): Optional<Usuario>
+    +existsByEmail(email: String, excludeId: Long): boolean
+    +save(usuario: Usuario): Usuario
   }
 
-  class DocumentoController {
-    - documentoService: DocumentoService
-    + listar(): List<Documento>
-    + obtenerPorId(id: String): Documento
-    + crear(documento: Documento): ResponseEntity<Documento>
-    + actualizar(id: String, documento: Documento): Documento
-    + eliminar(id: String): ResponseEntity<Void>
+  class AdminRepository <<repository>> {
+    +existsByEmail(email: String): boolean
+    +findByEmail(email: String): Optional<Usuario>
+    +upsertInitialAdmin(email: String, password: String, nombre: String, apellido: String): void
+    +save(admin: Admin): Admin
   }
 
-  class HealthController {
-    + root(): Map<String, String>
-    + health(): Map<String, String>
-  }
-
-  class GlobalExceptionHandler {
-    + handleDatabaseErrors(ex: Exception): ResponseEntity<Map<String, Object>>
-    + handleUnexpectedErrors(ex: Exception): ResponseEntity<Map<String, Object>>
+  class MaterialRepository <<repository>> {
+    +findAll(): List<Material>
+    +findById(id: Long): Optional<Material>
+    +save(material: Material): Material
+    +updateEstado(id: Long, estado: EstadoMaterial): boolean
   }
 }
 
-package "epn.pdciae_back.config" {
-  class SecurityConfig {
-    - jwtFilter: JwtFilter
-    + securityFilterChain(http: HttpSecurity): SecurityFilterChain
-    + passwordEncoder(): PasswordEncoder
+package "servlets" {
+  class LoginServlet <<servlet>> {
+    -adminRepository: AdminRepository
+    +doGet(req, resp): void
+    +doPost(req, resp): void
   }
 
-  class JwtFilter {
-    - jwtUtil: JwtUtil
-    + doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain): void
+  class LogoutServlet <<servlet>> {
+    +doGet(req, resp): void
+    +doPost(req, resp): void
   }
 
-  class OpenApiConfig {
-    + customOpenAPI(): OpenAPI
+  class DashboardAdminServlet <<servlet>> {
+    +doGet(req, resp): void
+  }
+
+  class UsuarioServlet <<servlet>> {
+    -usuarioRepository: UsuarioRepository
+    +doGet(req, resp): void
+    +doPost(req, resp): void
+  }
+
+  class UsuarioDetalleServlet <<servlet>> {
+    -usuarioRepository: UsuarioRepository
+    +doGet(req, resp): void
+  }
+
+  class UsuarioCrearServlet <<servlet>> {
+    -adminRepository: AdminRepository
+    +doGet(req, resp): void
+    +doPost(req, resp): void
+  }
+
+  class UsuarioEditarServlet <<servlet>> {
+    -usuarioRepository: UsuarioRepository
+    +doPost(req, resp): void
+  }
+
+  class PerfilServlet <<servlet>> {
+    -adminRepository: AdminRepository
+    +doGet(req, resp): void
+    +doPost(req, resp): void
+  }
+
+  class MaterialServlet <<servlet>> {
+    -materialRepository: MaterialRepository
+    +doGet(req, resp): void
+  }
+
+  class MaterialDetalleServlet <<servlet>> {
+    -materialRepository: MaterialRepository
+    +doGet(req, resp): void
+    +doPost(req, resp): void
   }
 }
 
-package "epn.utils" {
-  class JwtUtil {
-    + generarToken(email: String): String
-    + extraerEmail(token: String): String
+package "web" {
+  class AppContextListener <<listener>> {
+    +contextInitialized(sce): void
+    +contextDestroyed(sce): void
   }
 }
 
-package "epn.pdciae_back" {
+package "pdciae_back" {
   class PdciaeBackApplication {
-    + main(args: String[]): void
+    +main(args: String[]): void
   }
 }
 
-' Inheritance
+' JPA mapping
 Usuario <|-- Admin
-Usuario <|-- Estudiante
-Usuario <|-- Tutor
 
-' Repository inheritance
-MongoRepoAdmin <|.. AdminRepository
-MongoRepoEstudiante <|.. EstudianteRepository
-MongoRepoTutor <|.. TutorRepository
-MongoRepoDocumento <|.. DocumentoRepository
+' Repository dependencies
+UsuarioRepository --> Usuario
+UsuarioRepository --> JpaUtil
+AdminRepository --> Usuario
+AdminRepository --> Admin
+AdminRepository --> Rol
+AdminRepository --> Estados
+AdminRepository --> JpaUtil
+MaterialRepository --> Material
+MaterialRepository --> EstadoMaterial
+MaterialRepository --> JpaUtil
 
-' Service dependencies
-UserService --> AdminRepository
-UserService --> Admin
-UserService --> Rol
-UserService --> Estados
-UserService --> PasswordGeneratorService
-UserService --> EmailService
+' Servlet dependencies
+LoginServlet --> AdminRepository
+LoginServlet --> Usuario
+LogoutServlet --> "HttpSession"
+DashboardAdminServlet --> "HttpSession"
+UsuarioServlet --> UsuarioRepository
+UsuarioServlet --> Usuario
+UsuarioServlet --> Rol
+UsuarioServlet --> Estados
+UsuarioDetalleServlet --> UsuarioRepository
+UsuarioDetalleServlet --> Usuario
+UsuarioCrearServlet --> AdminRepository
+UsuarioCrearServlet --> Admin
+UsuarioCrearServlet --> Estados
+UsuarioEditarServlet --> UsuarioRepository
+UsuarioEditarServlet --> Usuario
+PerfilServlet --> AdminRepository
+PerfilServlet --> Admin
+PerfilServlet --> Usuario
+MaterialServlet --> "HttpSession"
+MaterialServlet --> MaterialRepository
+MaterialServlet --> Material
+MaterialDetalleServlet --> "HttpSession"
+MaterialDetalleServlet --> MaterialRepository
+MaterialDetalleServlet --> Material
+MaterialDetalleServlet --> EstadoMaterial
 
-AuthService --> AdminRepository
-AuthService --> JwtUtil
-AuthService --> AuthResponse
-
-DocumentoService --> DocumentoRepository
-DocumentoService --> Documento
-
-' Controller dependencies
-AdminController --> UserService
-AdminController --> Admin
-
-AuthController --> AuthService
-AuthController --> UserService
-AuthController --> AuthResponse
-
-DocumentoController --> DocumentoService
-DocumentoController --> Documento
-
-' Config and security dependencies
-SecurityConfig --> JwtFilter
-JwtFilter --> JwtUtil
+' Listener dependencies
+AppContextListener --> AdminRepository
+AppContextListener --> JpaUtil
 
 ' Enum usage
 Usuario --> Rol
 Usuario --> Estados
+Admin --> Rol
+Admin --> Estados
+Material --> EstadoMaterial
 
 ' Application-level package usage
-PdciaeBackApplication ..> "epn.controllers"
-PdciaeBackApplication ..> "epn.services"
-PdciaeBackApplication ..> "epn.repositories"
-PdciaeBackApplication ..> "epn.schemas"
-PdciaeBackApplication ..> "epn.utils"
+PdciaeBackApplication ..> "servlets"
+PdciaeBackApplication ..> "repositories"
+PdciaeBackApplication ..> "schemas"
+PdciaeBackApplication ..> "Enums"
+PdciaeBackApplication ..> "web"
+
+note right of Usuario
+  @Entity
+  @Table(name = "usuarios")
+  @Inheritance(strategy = SINGLE_TABLE)
+  @DiscriminatorColumn(name = "tipo_usuario")
+end note
+
+note right of Admin
+  @DiscriminatorValue("ADMIN")
+end note
+
+note right of Material
+  @Entity
+  @Table(name = "materiales")
+  Guarda título, nombre del archivo,
+  materia, usuario, estado y costo.
+end note
+
+note right of JpaUtil
+  Lee DB_URL / DATABASE_URL / JDBC_DATABASE_URL
+  y permite sobrescribir driver, url, usuario,
+  password y dialecto desde .env o variables de entorno.
+end note
+
+note right of AppContextListener
+  Sincroniza el admin inicial usando
+  ADMIN_EMAIL, ADMIN_PASSWORD,
+  ADMIN_NOMBRE y ADMIN_APELLIDO.
+end note
 
 @enduml

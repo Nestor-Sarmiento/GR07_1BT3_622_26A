@@ -158,31 +158,22 @@
                             </div>
                             <div>
                                 <h2 class="text-xl font-bold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                    <%-- Si viene del servlet: --%>
-                                    <c:choose>
-                                        <c:when test="${not empty material}">
-                                            <c:out value="${material.titulo}"/>
-                                        </c:when>
-                                        <c:otherwise>Introducción a la Microeconomía v2</c:otherwise>
-                                    </c:choose>
+                                        <c:out value="${material.titulo}"/>
                                 </h2>
                                 <p class="text-sm text-slate-500">
-                                    ID:
-                                    <c:choose>
-                                        <c:when test="${not empty material}"><c:out value="${material.id}"/></c:when>
-                                        <c:otherwise>MAT-2023-0142</c:otherwise>
-                                    </c:choose>
+                                        ID: <c:out value="${material.id}"/>
                                 </p>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        Archivo: <c:out value="${material.nombreArchivo}"/>
+                                    </p>
                             </div>
                         </div>
                         <%-- Badge de estado --%>
-                        <span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-bold uppercase tracking-widest border border-outline-variant/20 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
-                            <c:choose>
-                                <c:when test="${not empty material}"><c:out value="${material.estado}"/></c:when>
-                                <c:otherwise>Pendiente</c:otherwise>
-                            </c:choose>
-                        </span>
+                            <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-outline-variant/20 flex items-center gap-2
+                                ${material.estado == 'PENDIENTE' ? 'bg-orange-50 text-orange-700' : (material.estado == 'APROBADO' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}">
+                                <span class="w-2 h-2 rounded-full ${material.estado == 'PENDIENTE' ? 'bg-orange-500' : (material.estado == 'APROBADO' ? 'bg-green-500' : 'bg-red-500')} "></span>
+                                <c:out value="${material.estado}"/>
+                            </span>
                     </div>
 
                     <div class="space-y-6">
@@ -190,46 +181,36 @@
                         <div>
                             <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Descripción</h3>
                             <p class="text-on-surface/80 leading-relaxed">
-                                <c:choose>
-                                    <c:when test="${not empty material}"><c:out value="${material.descripcion}"/></c:when>
-                                    <c:otherwise>
-                                        Este material constituye la base teórica para el primer semestre de Economía.
-                                        Incluye diagramas actualizados sobre oferta y demanda, así como nuevos casos
-                                        de estudio basados en el mercado energético actual.
-                                    </c:otherwise>
-                                </c:choose>
+                                <c:out value="${material.descripcion}"/>
                             </p>
                         </div>
 
                         <%-- Grid de metadatos --%>
-                        <div class="grid grid-cols-3 gap-8 pt-6 border-t border-outline-variant/20">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-6 border-t border-outline-variant/20">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">ID Materia</h3>
+                                <div class="text-on-surface font-semibold text-sm">
+                                    <c:out value="${material.idMateria}"/>
+                                </div>
+                            </div>
                             <div>
                                 <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Materia</h3>
                                 <span class="px-3 py-1 rounded bg-secondary-container text-on-secondary-container text-xs font-bold uppercase tracking-wider">
-                                    <c:choose>
-                                        <c:when test="${not empty material}"><c:out value="${material.materia}"/></c:when>
-                                        <c:otherwise>Economía</c:otherwise>
-                                    </c:choose>
+                                    <c:out value="${material.nombreMateria}"/>
                                 </span>
                             </div>
                             <div>
                                 <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Tipo de Archivo</h3>
                                 <div class="flex items-center gap-2 text-on-surface font-semibold text-sm">
                                     <span class="material-symbols-outlined text-indigo-500">picture_as_pdf</span>
-                                    <c:choose>
-                                        <c:when test="${not empty material}"><c:out value="${material.tipoArchivo}"/></c:when>
-                                        <c:otherwise>PDF Document (.pdf)</c:otherwise>
-                                    </c:choose>
+                                    <c:out value="${material.tipoArchivo}"/>
                                 </div>
                             </div>
                             <div>
                                 <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Costo</h3>
                                 <div class="flex items-center gap-2 text-on-surface font-semibold text-sm">
                                     <span class="material-symbols-outlined text-indigo-500">payments</span>
-                                    $<c:choose>
-                                        <c:when test="${not empty material}"><c:out value="${material.costo}"/></c:when>
-                                        <c:otherwise>15.00</c:otherwise>
-                                    </c:choose>
+                                    $<c:out value="${material.costo}"/>
                                 </div>
                             </div>
                         </div>
@@ -261,17 +242,11 @@
                         </div>
                         <div>
                             <p class="text-sm font-bold text-indigo-900" style="font-family:'Manrope',sans-serif">
-                                <c:choose>
-                                    <c:when test="${not empty material}"><c:out value="${material.usuario}"/></c:when>
-                                    <c:otherwise>Ricardo Valenzuela</c:otherwise>
-                                </c:choose>
+                                <c:out value="${material.usuario}"/>
                             </p>
                             <p class="text-[10px] text-slate-500 uppercase tracking-wider">
                                 Enviado el
-                                <c:choose>
-                                    <c:when test="${not empty material}"><c:out value="${material.fechaEnvio}"/></c:when>
-                                    <c:otherwise>12 Oct, 2023</c:otherwise>
-                                </c:choose>
+                                <c:out value="${material.fechaEnvio}"/>
                             </p>
                         </div>
                     </div>
@@ -282,8 +257,7 @@
                     --%>
                     <div class="flex flex-col gap-3">
                         <form action="${pageContext.request.contextPath}/material/accion" method="post">
-                            <input type="hidden" name="id"
-                                   value="<c:out value='${not empty material ? material.id : 0}'/>"/>
+                            <input type="hidden" name="id" value="${material.id}"/>
                             <input type="hidden" name="accion" value="ACEPTAR"/>
                             <button type="submit"
                                     class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white
@@ -295,8 +269,7 @@
                         </form>
 
                         <form action="${pageContext.request.contextPath}/material/accion" method="post">
-                            <input type="hidden" name="id"
-                                   value="<c:out value='${not empty material ? material.id : 0}'/>"/>
+                            <input type="hidden" name="id" value="${material.id}"/>
                             <input type="hidden" name="accion" value="RECHAZAR"/>
                             <button type="submit"
                                     class="w-full py-2.5 rounded-xl border border-indigo-100 bg-white text-indigo-600

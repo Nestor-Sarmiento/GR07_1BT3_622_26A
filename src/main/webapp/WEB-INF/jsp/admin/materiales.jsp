@@ -150,14 +150,15 @@
             </div>
         </c:if>
 
-        <%-- Tabla --%>
+                        <%-- Tabla --%>
         <div class="bg-surface-container-low rounded-xl overflow-hidden">
             <div class="bg-surface-container-lowest p-1 shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="text-slate-500 font-semibold text-xs uppercase tracking-widest bg-surface-container-low/50">
-                                <th class="px-8 py-5">Nombre del Material</th>
+                                <th class="px-8 py-5">Nombre del Archivo</th>
+                                <th class="px-8 py-5">ID Materia</th>
                                 <th class="px-8 py-5">Materia</th>
                                 <th class="px-8 py-5">Usuario</th>
                                 <th class="px-8 py-5">Fecha de Envío</th>
@@ -177,13 +178,16 @@
                                                         <span class="material-symbols-outlined">description</span>
                                                     </div>
                                                     <span class="font-semibold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                                        <c:out value="${m.titulo}"/>
+                                                        <c:out value="${m.nombreArchivo}"/>
                                                     </span>
                                                 </div>
                                             </td>
+                                            <td class="px-8 py-6 text-sm text-slate-600">
+                                                <c:out value="${m.idMateria}"/>
+                                            </td>
                                             <td class="px-8 py-6">
                                                 <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[11px] font-bold uppercase tracking-wider">
-                                                    <c:out value="${m.materia}"/>
+                                                    <c:out value="${m.nombreMateria}"/>
                                                 </span>
                                             </td>
                                             <td class="px-8 py-6 text-sm text-slate-600">
@@ -194,7 +198,7 @@
                                             </td>
                                             <td class="px-8 py-6">
                                                 <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider
-                                                    ${m.estado == 'PENDIENTE' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}">
+                                                    ${m.estado == 'PENDIENTE' ? 'bg-orange-100 text-orange-700' : (m.estado == 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')}">
                                                     <c:out value="${m.estado}"/>
                                                 </span>
                                             </td>
@@ -202,7 +206,6 @@
                                                 $<c:out value="${m.costo}"/>
                                             </td>
                                             <td class="px-8 py-6 text-right">
-                                                <%-- TODO: conectar con MaterialDetalleServlet cuando exista --%>
                                                 <a href="${pageContext.request.contextPath}/material/detalle?id=${m.id}"
                                                    class="text-primary hover:text-primary-container font-bold text-sm tracking-tight transition-colors">
                                                     Ver Detalles
@@ -212,65 +215,9 @@
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
-                                    <%-- Datos de ejemplo mientras no existe el servlet --%>
-                                    <tr class="hover:bg-slate-100/50 transition-colors border-t border-outline-variant/20">
-                                        <td class="px-8 py-6">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-10 h-10 rounded bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                                    <span class="material-symbols-outlined">description</span>
-                                                </div>
-                                                <span class="font-semibold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                                    Introducción a la Microeconomía v2
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="px-8 py-6">
-                                            <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[11px] font-bold uppercase tracking-wider">
-                                                Economía
-                                            </span>
-                                        </td>
-                                        <td class="px-8 py-6 text-sm text-slate-600">Dr. Ricardo Silva</td>
-                                        <td class="px-8 py-6 text-sm text-slate-500">12 Oct 2023</td>
-                                        <td class="px-8 py-6">
-                                            <span class="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-[11px] font-bold uppercase tracking-wider">
-                                                Pendiente
-                                            </span>
-                                        </td>
-                                        <td class="px-8 py-6 text-sm text-slate-600">$15.00</td>
-                                        <td class="px-8 py-6 text-right">
-                                            <a href="${pageContext.request.contextPath}/material/detalle?id=1" class="text-primary hover:text-primary-container font-bold text-sm tracking-tight transition-colors">
-                                                Ver Detalles
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-slate-100/50 transition-colors border-t border-outline-variant/20">
-                                        <td class="px-8 py-6">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-10 h-10 rounded bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                                    <span class="material-symbols-outlined">menu_book</span>
-                                                </div>
-                                                <span class="font-semibold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                                    Guía Didáctica: Literatura Siglo de Oro
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="px-8 py-6">
-                                            <span class="px-3 py-1 rounded-full bg-orange-50 text-on-tertiary-fixed-variant text-[11px] font-bold uppercase tracking-wider">
-                                                Humanidades
-                                            </span>
-                                        </td>
-                                        <td class="px-8 py-6 text-sm text-slate-600">Elena Martínez</td>
-                                        <td class="px-8 py-6 text-sm text-slate-500">10 Oct 2023</td>
-                                        <td class="px-8 py-6">
-                                            <span class="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-[11px] font-bold uppercase tracking-wider">
-                                                Pendiente
-                                            </span>
-                                        </td>
-                                        <td class="px-8 py-6 text-sm text-slate-600">$10.00</td>
-                                        <td class="px-8 py-6 text-right">
-                                            <a href="#" class="text-primary hover:text-primary-container font-bold text-sm tracking-tight transition-colors">
-                                                Ver Detalles
-                                            </a>
+                                    <tr class="border-t border-outline-variant/20">
+                                        <td class="px-8 py-10 text-center text-slate-500" colspan="8">
+                                            No hay materiales registrados todavía.
                                         </td>
                                     </tr>
                                 </c:otherwise>
