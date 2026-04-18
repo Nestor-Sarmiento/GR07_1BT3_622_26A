@@ -81,12 +81,21 @@ public class UsuarioEditarServlet extends HttpServlet {
     }
 
     private Long parseLong(String value) {
+        return Optional.ofNullable(value)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(this::tryParseLong)
+                .orElse(null);
+    }
+
+    private Long tryParseLong(String value) {
         try {
-            return value == null ? null : Long.parseLong(value.trim());
+            return Long.parseLong(value);
         } catch (NumberFormatException ex) {
             return null;
         }
     }
+
 
     private String value(String input) {
         return input == null ? "" : input.trim();

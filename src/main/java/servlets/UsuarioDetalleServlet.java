@@ -36,14 +36,7 @@ public class UsuarioDetalleServlet extends HttpServlet {
             session.removeAttribute("error");
         }
 
-        String idParam = req.getParameter("id");
-        Long id;
-        try {
-            id = idParam == null ? null : Long.parseLong(idParam);
-        } catch (NumberFormatException ex) {
-            id = null;
-        }
-
+        Long id = idDesdeRequest(req);
         if (id == null) {
             resp.sendRedirect(req.getContextPath() + "/usuarios");
             return;
@@ -58,5 +51,17 @@ public class UsuarioDetalleServlet extends HttpServlet {
         req.setAttribute("usuarioDetalle", usuarioOpt.get());
         req.getRequestDispatcher("/WEB-INF/jsp/admin/detalle-usuario.jsp").forward(req, resp);
     }
+
+
+    private Long idDesdeRequest(HttpServletRequest req) {
+        try {
+            String id = req.getParameter("id");
+            return id == null ? null : Long.parseLong(id);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+
 }
 

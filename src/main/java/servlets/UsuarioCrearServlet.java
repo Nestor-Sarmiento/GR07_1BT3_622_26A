@@ -37,9 +37,9 @@ public class UsuarioCrearServlet extends HttpServlet {
             return;
         }
 
-        String nombre = value(req.getParameter("nombre"));
-        String apellido = value(req.getParameter("apellido"));
-        String email = value(req.getParameter("email"));
+        String nombre = ServletUtils.value(req.getParameter("nombre"));
+        String apellido = ServletUtils.value(req.getParameter("apellido"));
+        String email = ServletUtils.value(req.getParameter("email"));
 
         if (nombre.isBlank() || email.isBlank()) {
             req.setAttribute("error", "Nombre y email son obligatorios.");
