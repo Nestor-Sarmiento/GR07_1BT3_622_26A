@@ -29,9 +29,13 @@ public class AppContextListener implements ServletContextListener {
             return;
         }
 
-        AdminRepository adminRepository = new AdminRepository();
-        adminRepository.upsertInitialAdmin(email, password, nombre, apellido);
-        sce.getServletContext().log("Admin inicial sincronizado para: " + email);
+        try {
+            AdminRepository adminRepository = new AdminRepository();
+            adminRepository.upsertInitialAdmin(email, password, nombre, apellido);
+            sce.getServletContext().log("Admin inicial sincronizado para: " + email);
+        } catch (RuntimeException ex) {
+            sce.getServletContext().log("No se pudo sincronizar el admin inicial. La app sigue activa, pero sin conexión DB.", ex);
+        }
     }
 }
 

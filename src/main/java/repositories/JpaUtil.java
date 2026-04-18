@@ -19,8 +19,7 @@ import java.util.logging.Logger;
 public final class JpaUtil {
     private static final Logger LOGGER = Logger.getLogger(JpaUtil.class.getName());
     private static final Map<String, String> DOTENV = loadDotenv();
-    private static final EntityManagerFactory EMF = Persistence.createEntityManagerFactory(
-            "pdciaePU", buildOverrides());
+    private static volatile EntityManagerFactory emf;
 
     private JpaUtil() {
     }
@@ -177,12 +176,30 @@ public final class JpaUtil {
     }
 
     public static EntityManager createEntityManager() {
-        return EMF.createEntityManager();
+        return getEntityManagerFactory().createEntityManager();
     }
 
     public static void shutdown() {
-        if (EMF.isOpen()) {
-            EMF.close();
+        EntityManagerFactory local = emf;
+        if (local != null && local.isOpen()) {
+            local.close();
         }
+    }
+
+    private static EntityManagerFactory getEntityManagerFactory() {
+        EntityManagerFactory local = emf;
+        if (local != null) {
+            return local;
+        }
+
+        synchronized (JpaUtil.class) {
+            local = emf;
+            if (local == null) {
+                local = Persistence.createEntityManagerFactory("pdciaePU", buildOverrides());
+                emf = local;
+            }
+        }
+
+        return local;
     }
 }

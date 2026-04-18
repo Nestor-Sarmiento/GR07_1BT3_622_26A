@@ -1,250 +1,129 @@
 @startuml
 skinparam style strictuml
-skinparam classAttributeIconSize 0
-skinparam packageStyle rectangle
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
 
-title PDCIAE Back - Class Diagram (actualizado)
+title PDCIAE Back - Diagrama de Secuencia (Flujo Principal)
 
-package "Enums" {
-  enum Rol {
-    ADMIN
-    ESTUDIANTE
-    TUTOR
-  }
+actor Admin as admin
+participant "LoginServlet" as login
+participant "AdminRepository" as adminRepo
+participant "JpaUtil" as jpa
+database "PostgreSQL\n(Supabase)" as db
+participant "MaterialServlet" as matServlet
+participant "MaterialRepository" as matRepo
+participant "MaterialDetalleServlet" as matDetalle
+participant "Material" as material
 
-  enum Estados {
-    ACTIVO
-    INACTIVO
-    POR_VERIFICAR
-  }
+== Iniciar Sesión ==
 
-  enum EstadoMaterial {
-    PENDIENTE
-    APROBADO
-    RECHAZADO
-  }
-}
+admin -> login : POST /login\n(email, password)
+activate login
 
-package "schemas" {
-  class Usuario <<entity>> {
-    +id_usuario: Long
-    +email: String
-    +nombre: String
-    +segundoNombre: String
-    +apellido: String
-    +segundoApellido: String
-    +rol: Rol
-    +password: String
-    +estado: Estados
-    +mustChangePassword: boolean
-  }
+login -> adminRepo : findByEmail(email)
+activate adminRepo
 
-  class Admin <<entity>> {
-    +Admin(id_usuario: Long, email: String, nombre: String, apellido: String, password: String, estado: Estados)
-  }
+adminRepo -> jpa : createEntityManager()
+activate jpa
+jpa -> db : SELECT usuario WHERE email = ?
+db --> jpa : Usuario
+jpa --> adminRepo : EntityManager
+deactivate jpa
 
-  class Material <<entity>> {
-    +id: Long
-    +nombreArchivo: String
-    +titulo: String
-    +idMateria: Long
-    +nombreMateria: String
-    +usuario: String
-    +descripcion: String
-    +tipoArchivo: String
-    +fechaEnvio: LocalDateTime
-    +estado: EstadoMaterial
-    +costo: BigDecimal
-  }
-}
+adminRepo --> login : Optional<Usuario>
+deactivate adminRepo
 
-package "repositories" {
-  class JpaUtil <<utility>> {
-    +getConfigValue(key: String): String
-    +getConfigValue(key: String, defaultValue: String): String
-    +createEntityManager(): EntityManager
-    +shutdown(): void
-  }
+alt credenciales incorrectas
+    login --> admin : forward /login.jsp\n(error: "Credenciales incorrectas")
+else credenciales correctas
+    login -> login : session.setAttribute\n("adminLogueado", usuario)
+    login --> admin : redirect /dashboardAdmin
+end
 
-  class UsuarioRepository <<repository>> {
-    +findAll(): List<Usuario>
-    +findById(id: Long): Optional<Usuario>
-    +existsByEmail(email: String, excludeId: Long): boolean
-    +save(usuario: Usuario): Usuario
-  }
+deactivate login
 
-  class AdminRepository <<repository>> {
-    +existsByEmail(email: String): boolean
-    +findByEmail(email: String): Optional<Usuario>
-    +upsertInitialAdmin(email: String, password: String, nombre: String, apellido: String): void
-    +save(admin: Admin): Admin
-  }
+== Ver Listado de Materiales ==
 
-  class MaterialRepository <<repository>> {
-    +findAll(): List<Material>
-    +findById(id: Long): Optional<Material>
-    +save(material: Material): Material
-    +updateEstado(id: Long, estado: EstadoMaterial): boolean
-  }
-}
+admin -> matServlet : GET /materiales
+activate matServlet
 
-package "servlets" {
-  class LoginServlet <<servlet>> {
-    -adminRepository: AdminRepository
-    +doGet(req, resp): void
-    +doPost(req, resp): void
-  }
+matServlet -> matServlet : validar sesión\n(adminLogueado)
 
-  class LogoutServlet <<servlet>> {
-    +doGet(req, resp): void
-    +doPost(req, resp): void
-  }
+matServlet -> matRepo : findAll()
+activate matRepo
 
-  class DashboardAdminServlet <<servlet>> {
-    +doGet(req, resp): void
-  }
+matRepo -> jpa : createEntityManager()
+activate jpa
+jpa -> db : SELECT * FROM materiales\nORDER BY fechaEnvio DESC
+db --> jpa : List<Material>
+jpa --> matRepo : EntityManager
+deactivate jpa
 
-  class UsuarioServlet <<servlet>> {
-    -usuarioRepository: UsuarioRepository
-    +doGet(req, resp): void
-    +doPost(req, resp): void
-  }
+matRepo --> matServlet : List<Material>
+deactivate matRepo
 
-  class UsuarioDetalleServlet <<servlet>> {
-    -usuarioRepository: UsuarioRepository
-    +doGet(req, resp): void
-  }
+matServlet -> matServlet : request.setAttribute\n("materiales", lista)
+matServlet --> admin : forward /materiales.jsp
+deactivate matServlet
 
-  class UsuarioCrearServlet <<servlet>> {
-    -adminRepository: AdminRepository
-    +doGet(req, resp): void
-    +doPost(req, resp): void
-  }
+== Ver Detalle de Material ==
 
-  class UsuarioEditarServlet <<servlet>> {
-    -usuarioRepository: UsuarioRepository
-    +doPost(req, resp): void
-  }
+admin -> matDetalle : GET /material/detalle?id=X
+activate matDetalle
 
-  class PerfilServlet <<servlet>> {
-    -adminRepository: AdminRepository
-    +doGet(req, resp): void
-    +doPost(req, resp): void
-  }
+matDetalle -> matDetalle : validar sesión\n(adminLogueado)
 
-  class MaterialServlet <<servlet>> {
-    -materialRepository: MaterialRepository
-    +doGet(req, resp): void
-  }
+matDetalle -> matRepo : findById(id)
+activate matRepo
 
-  class MaterialDetalleServlet <<servlet>> {
-    -materialRepository: MaterialRepository
-    +doGet(req, resp): void
-    +doPost(req, resp): void
-  }
-}
+matRepo -> jpa : createEntityManager()
+activate jpa
+jpa -> db : SELECT * FROM materiales\nWHERE id_material = ?
+db --> jpa : Material
+jpa --> matRepo : EntityManager
+deactivate jpa
 
-package "web" {
-  class AppContextListener <<listener>> {
-    +contextInitialized(sce): void
-    +contextDestroyed(sce): void
-  }
-}
+matRepo --> matDetalle : Optional<Material>
+deactivate matRepo
 
-package "pdciae_back" {
-  class PdciaeBackApplication {
-    +main(args: String[]): void
-  }
-}
+alt material no encontrado
+    matDetalle -> matDetalle : flash(session, "flashError", mensaje)
+    matDetalle --> admin : redirect /materiales
+else material encontrado
+    matDetalle -> matDetalle : request.setAttribute\n("material", material)
+    matDetalle --> admin : forward /detalle-material.jsp
+end
 
-' JPA mapping
-Usuario <|-- Admin
+deactivate matDetalle
 
-' Repository dependencies
-UsuarioRepository --> Usuario
-UsuarioRepository --> JpaUtil
-AdminRepository --> Usuario
-AdminRepository --> Admin
-AdminRepository --> Rol
-AdminRepository --> Estados
-AdminRepository --> JpaUtil
-MaterialRepository --> Material
-MaterialRepository --> EstadoMaterial
-MaterialRepository --> JpaUtil
+== Aprobar / Rechazar Material ==
 
-' Servlet dependencies
-LoginServlet --> AdminRepository
-LoginServlet --> Usuario
-LogoutServlet --> "HttpSession"
-DashboardAdminServlet --> "HttpSession"
-UsuarioServlet --> UsuarioRepository
-UsuarioServlet --> Usuario
-UsuarioServlet --> Rol
-UsuarioServlet --> Estados
-UsuarioDetalleServlet --> UsuarioRepository
-UsuarioDetalleServlet --> Usuario
-UsuarioCrearServlet --> AdminRepository
-UsuarioCrearServlet --> Admin
-UsuarioCrearServlet --> Estados
-UsuarioEditarServlet --> UsuarioRepository
-UsuarioEditarServlet --> Usuario
-PerfilServlet --> AdminRepository
-PerfilServlet --> Admin
-PerfilServlet --> Usuario
-MaterialServlet --> "HttpSession"
-MaterialServlet --> MaterialRepository
-MaterialServlet --> Material
-MaterialDetalleServlet --> "HttpSession"
-MaterialDetalleServlet --> MaterialRepository
-MaterialDetalleServlet --> Material
-MaterialDetalleServlet --> EstadoMaterial
+admin -> matDetalle : POST /material/accion\n(id, accion: "ACEPTAR"|"RECHAZAR")
+activate matDetalle
 
-' Listener dependencies
-AppContextListener --> AdminRepository
-AppContextListener --> JpaUtil
+matDetalle -> matDetalle : validar sesión\n(adminLogueado)
+matDetalle -> matDetalle : determinar EstadoMaterial\n(APROBADO | RECHAZADO)
 
-' Enum usage
-Usuario --> Rol
-Usuario --> Estados
-Admin --> Rol
-Admin --> Estados
-Material --> EstadoMaterial
+matDetalle -> matRepo : updateEstado(id, nuevoEstado)
+activate matRepo
 
-' Application-level package usage
-PdciaeBackApplication ..> "servlets"
-PdciaeBackApplication ..> "repositories"
-PdciaeBackApplication ..> "schemas"
-PdciaeBackApplication ..> "Enums"
-PdciaeBackApplication ..> "web"
+matRepo -> jpa : createEntityManager()
+activate jpa
+jpa -> db : UPDATE materiales\nSET estado = ?\nWHERE id_material = ?
+db --> jpa : ok
+jpa --> matRepo : EntityManager
+deactivate jpa
 
-note right of Usuario
-  @Entity
-  @Table(name = "usuarios")
-  @Inheritance(strategy = SINGLE_TABLE)
-  @DiscriminatorColumn(name = "tipo_usuario")
-end note
+matRepo --> matDetalle : boolean (actualizado)
+deactivate matRepo
 
-note right of Admin
-  @DiscriminatorValue("ADMIN")
-end note
+alt no actualizado
+    matDetalle -> matDetalle : flash(session, "flashError", mensaje)
+else actualizado correctamente
+    matDetalle -> matDetalle : flash(session, "flashMensaje", mensaje)
+end
 
-note right of Material
-  @Entity
-  @Table(name = "materiales")
-  Guarda título, nombre del archivo,
-  materia, usuario, estado y costo.
-end note
-
-note right of JpaUtil
-  Lee DB_URL / DATABASE_URL / JDBC_DATABASE_URL
-  y permite sobrescribir driver, url, usuario,
-  password y dialecto desde .env o variables de entorno.
-end note
-
-note right of AppContextListener
-  Sincroniza el admin inicial usando
-  ADMIN_EMAIL, ADMIN_PASSWORD,
-  ADMIN_NOMBRE y ADMIN_APELLIDO.
-end note
+matDetalle --> admin : redirect /materiales
+deactivate matDetalle
 
 @enduml
