@@ -7,6 +7,8 @@ import repositories.UsuarioRepository;
 import schemas.Material;
 import schemas.Usuario;
 
+import java.util.List;
+
 public class EstudianteService {
 
     public boolean validarNombre(String nombre) {
@@ -50,5 +52,11 @@ public class EstudianteService {
                 .mustChangePassword(true)
                 .build();
         return repo.save(estudiante);
+    }
+
+    public List<Usuario> obtenerTodos(UsuarioRepository repo) {
+        return repo.findAll().stream()
+                .filter(u -> u.getRol() == Rol.ESTUDIANTE)
+                .toList();
     }
 }

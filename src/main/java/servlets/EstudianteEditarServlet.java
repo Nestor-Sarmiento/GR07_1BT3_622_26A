@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import repositories.UsuarioRepository;
 import schemas.Usuario;
+import services.EstudianteService;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import java.util.Optional;
 @WebServlet(name = "estudianteEditarServlet", urlPatterns = "/estudiante/editar")
 public class EstudianteEditarServlet extends HttpServlet {
     private final UsuarioRepository usuarioRepository = new UsuarioRepository();
+    private final EstudianteService estudianteService = new EstudianteService();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -52,8 +54,9 @@ public class EstudianteEditarServlet extends HttpServlet {
         String email = value(req.getParameter("email"));
         String password = value(req.getParameter("password"));
 
-        if (nombre.isBlank() || email.isBlank()) {
-            flash(session, "error", "Nombre y correo electrónico son obligatorios.");
+        // Validar nombre y correo usando EstudianteService
+        if (!estudianteService.validarActualizacionDatos(nombre, email)) {
+            flash(session, "error", "Nombre y correo electrónico son obligatorios y deben ser válidos.");
             resp.sendRedirect(req.getContextPath() + "/estudiante/detalle?id=" + id);
             return;
         }
