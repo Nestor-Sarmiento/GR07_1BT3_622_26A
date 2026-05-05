@@ -178,7 +178,7 @@
                                                         <span class="material-symbols-outlined">description</span>
                                                     </div>
                                                     <span class="font-semibold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                                        <c:out value="${m.nombreArchivo}"/>
+                                                        <c:out value="${m.titulo}"/>
                                                     </span>
                                                 </div>
                                             </td>

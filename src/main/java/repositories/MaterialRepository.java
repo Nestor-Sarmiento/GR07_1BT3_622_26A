@@ -13,7 +13,7 @@ public class MaterialRepository {
     public List<Material> findAll() {
         try (EntityManager em = JpaUtil.createEntityManager()) {
             return em.createQuery(
-                            "SELECT m FROM Material m ORDER BY m.fechaEnvio DESC, m.id DESC",
+                            "SELECT m FROM Material m ORDER BY m.fechaEnvio DESC",
                             Material.class)
                     .getResultList();
         }

@@ -164,7 +164,7 @@
                                         ID: <c:out value="${material.id}"/>
                                 </p>
                                     <p class="text-xs text-slate-500 mt-1">
-                                        Archivo: <c:out value="${material.nombreArchivo}"/>
+                                        Archivo: <c:out value="${material.titulo}"/>
                                     </p>
                             </div>
                         </div>
