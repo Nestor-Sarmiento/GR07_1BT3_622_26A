@@ -1,6 +1,7 @@
 package servlets;
 
 import Enums.Rol;
+import Enums.CategoriaMaterial;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,6 +22,7 @@ public class SubirMaterialServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!esTutor(req, resp)) return;
+        req.setAttribute("categorias", CategoriaMaterial.values());
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 

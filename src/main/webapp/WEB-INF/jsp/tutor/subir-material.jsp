@@ -180,10 +180,9 @@
                                 <label for="nombreMateria" class="text-sm font-bold text-on-surface px-1">Categoría académica</label>
                                 <select id="nombreMateria" name="nombreMateria"
                                         class="w-full bg-surface-container-highest border-0 rounded-t-lg py-3 px-4 focus:ring-2 focus:ring-primary text-on-surface appearance-none">
-                                    <option value="Guía">Guía</option>
-                                    <option value="Apuntes">Apuntes</option>
-                                    <option value="Ejercicios">Ejercicios</option>
-                                    <option value="Resumen">Resumen</option>
+                                    <c:forEach var="cat" items="${categorias}">
+                                        <option value="${cat.nombre}"><c:out value="${cat.nombre}"/></option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
