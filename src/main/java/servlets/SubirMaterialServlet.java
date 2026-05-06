@@ -57,14 +57,9 @@ public class SubirMaterialServlet extends HttpServlet {
         }
 
         String nombreArchivoOriginal = archivoPart.getSubmittedFileName();
-        String extension = "";
-        int idx = nombreArchivoOriginal != null ? nombreArchivoOriginal.lastIndexOf('.') : -1;
-        if (idx != -1 && idx < nombreArchivoOriginal.length() - 1) {
-            extension = nombreArchivoOriginal.substring(idx).toLowerCase();
-        }
+        String extension = obtenerExtension(nombreArchivoOriginal);
 
-        Set<String> extensionesPermitidas = Set.of(".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".csv", ".xml");
-        if (!extensionesPermitidas.contains(extension)) {
+        if (!esExtensionPermitida(extension)) {
             req.setAttribute("error", "Extensión no permitida");
             req.setAttribute("categorias", CategoriaMaterial.values());
             req.getRequestDispatcher(VIEW).forward(req, resp);
@@ -117,5 +112,18 @@ public class SubirMaterialServlet extends HttpServlet {
             return false;
         }
         return true;
+    }
+
+    // Métodos extraídos para facilitar pruebas unitarias sin mocks
+    public static boolean esExtensionPermitida(String extension) {
+        if (extension == null || extension.isBlank()) return false;
+        java.util.Set<String> permitidas = java.util.Set.of(".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".csv", ".xml");
+        return permitidas.contains(extension.toLowerCase());
+    }
+
+    public static String obtenerExtension(String nombreArchivo) {
+        if (nombreArchivo == null) return "";
+        int idx = nombreArchivo.lastIndexOf('.');
+        return (idx != -1) ? nombreArchivo.substring(idx).toLowerCase() : "";
     }
 }
