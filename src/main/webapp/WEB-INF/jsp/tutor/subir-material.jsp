@@ -1,11 +1,5 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%-- =============================================
-     Vista: subir-material.jsp
-     Servlet: SubirMaterialServlet → POST /tutor/subir
-     Session: usuarioLogueado (Rol.TUTOR)
-     Atributos de request: error (String)
-     ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
 <head>
@@ -129,6 +123,20 @@
                 <div class="flex items-center gap-3 bg-red-50 border border-error/30 text-error px-5 py-4 rounded-xl">
                     <span class="material-symbols-outlined">error</span>
                     <span class="text-sm font-semibold"><c:out value="${error}"/></span>
+                </div>
+            </c:if>
+
+            <%-- Mensajes flash --%>
+            <c:if test="${not empty flashMensaje}">
+                <div class="flex items-center gap-3 bg-green-50 border border-green-300 text-green-800 px-5 py-4 rounded-xl">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span class="text-sm font-semibold"><c:out value="${flashMensaje}"/></span>
+                </div>
+            </c:if>
+            <c:if test="${not empty flashError}">
+                <div class="flex items-center gap-3 bg-red-50 border border-red-300 text-red-800 px-5 py-4 rounded-xl">
+                    <span class="material-symbols-outlined">error</span>
+                    <span class="text-sm font-semibold"><c:out value="${flashError}"/></span>
                 </div>
             </c:if>
 
