@@ -67,9 +67,12 @@ public class LoginServlet extends HttpServlet {
             // De lo contrario es un usuario normal (TUTOR o ESTUDIANTE)
             session.setAttribute("usuarioLogueado", usuario);
             session.setMaxInactiveInterval(30 * 60);
-            
-            // Por ahora redirigimos al index.jsp ya que sus dashboards no están implementados
-            resp.sendRedirect(req.getContextPath() + "/index.jsp"); 
+
+            if (usuario.getRol() == Enums.Rol.TUTOR) {
+                resp.sendRedirect(req.getContextPath() + "/tutor/dashboard");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            }
             return;
         }
 
