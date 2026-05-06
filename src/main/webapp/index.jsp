@@ -59,8 +59,8 @@
                style="font-family:'Manrope',sans-serif">
                 Login
             </a>
-            <%-- Register → placeholder por ahora --%>
-            <a href="#"
+            <%-- Register → Vínculo corregido a /registro --%>
+            <a href="${pageContext.request.contextPath}/registro"
                class="px-5 py-2 text-sm font-bold editorial-gradient text-white rounded-lg shadow-sm hover:opacity-90 transition-all"
                style="font-family:'Manrope',sans-serif">
                 Register

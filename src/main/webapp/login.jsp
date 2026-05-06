@@ -57,6 +57,14 @@
 
             <div class="p-8 space-y-6">
 
+                <%-- ── Mensaje de éxito/información ── --%>
+                <% if (request.getParameter("mensaje") != null) { %>
+                <div class="flex items-center gap-3 bg-green-50 text-green-700 text-sm font-medium px-4 py-3 rounded-lg border border-green-100">
+                    <span class="material-symbols-outlined text-base">check_circle</span>
+                    <%= request.getParameter("mensaje") %>
+                </div>
+                <% } %>
+
                 <%-- ── Mensaje de error ──
                      El LoginServlet (cuando exista) debe hacer:
                        request.setAttribute("error", "Credenciales incorrectas");
@@ -123,6 +131,14 @@
                         <span class="material-symbols-outlined">arrow_forward</span>
                     </button>
                 </form>
+
+                <%-- Enlace a Registro --%>
+                <div class="text-center pt-2">
+                    <p class="text-sm text-slate-500">
+                        ¿No tienes una cuenta?
+                        <a href="${pageContext.request.contextPath}/registro" class="text-primary font-bold hover:underline">Regístrate aquí</a>
+                    </p>
+                </div>
             </div>
 
             <%-- Barra decorativa inferior --%>
