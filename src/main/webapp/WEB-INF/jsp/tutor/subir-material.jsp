@@ -186,6 +186,18 @@
                                 </select>
                             </div>
 
+                            <%-- Materia --%>
+                            <div class="flex flex-col gap-1">
+                                <label for="materia" class="text-sm font-bold text-on-surface px-1">Materia</label>
+                                <select id="materia" name="materia"
+                                        class="w-full bg-surface-container-highest border-0 rounded-t-lg py-3 px-4 focus:ring-2 focus:ring-primary text-on-surface appearance-none">
+                                    <option value="">-- Seleccionar materia --</option>
+                                    <c:forEach var="m" items="${materias}">
+                                        <option value="${m}"><c:out value="${m.nombre}"/> (<c:out value="${m.id}"/>)</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+
                             <%-- Precio --%>
                             <div class="flex flex-col gap-1">
                                 <label for="costo" class="text-sm font-bold text-on-surface px-1">
