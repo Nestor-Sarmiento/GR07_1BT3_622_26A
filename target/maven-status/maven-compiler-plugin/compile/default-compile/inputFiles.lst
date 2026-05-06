@@ -1,5 +1,7 @@
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\CategoriaMaterial.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\EstadoMaterial.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\Estados.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\MateriaFIS.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\Rol.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\pdciae_back\PdciaeBackApplication.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\repositories\AdminRepository.java
@@ -20,7 +22,10 @@ D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\LogoutServle
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\MaterialDetalleServlet.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\MaterialServlet.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\PerfilServlet.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\RegistroServlet.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\ServletUtils.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\SubirMaterialServlet.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\TutorDashboardServlet.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\UsuarioCrearServlet.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\UsuarioDetalleServlet.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\UsuarioEditarServlet.java

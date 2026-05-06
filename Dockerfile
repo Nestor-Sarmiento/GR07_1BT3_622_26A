@@ -1,25 +1,14 @@
-# Build stage
-FROM eclipse-temurin:23-jdk AS build
+# Etapa 1 — Compilar
+FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copiamos los archivos de configuración de Maven para aprovechar el caché de capas
-COPY .mvn .mvn
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw -q -DskipTests dependency:go-offline
-
-# Copiamos el código fuente y compilamos asegurando una limpieza previa
-COPY src src
-RUN ./mvnw -q clean package -DskipTests
-
-# Runtime stage
-FROM eclipse-temurin:23-jre
-WORKDIR /app
-
-# Copiamos el archivo JAR generado en la etapa anterior
-COPY --from=build /app/target/*.jar app.jar
-
-# Render detecta automáticamente el puerto abierto; Spring lo toma de PORT.
+# Etapa 2 — Desplegar en Tomcat
+FROM tomcat:10.1-jdk17-temurin
+# Limpiar apps por defecto de Tomcat
+RUN rm -rf /usr/local/tomcat/webapps/*
+# Copiar el WAR como ROOT para que sea la app principal
+COPY --from=builder /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 EXPOSE 8080
-
-# Ejecución de la aplicación
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["catalina.sh", "run"]
