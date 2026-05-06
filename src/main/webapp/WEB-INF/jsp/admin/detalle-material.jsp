@@ -230,9 +230,9 @@
                     </button>
                 </div>
 
-                <%-- Motivo de Rechazo (se muestra tras confirmar rechazo) --%>
+                <%-- Motivo de Rechazo (se muestra si el estado es RECHAZADO) --%>
                 <div id="seccionMotivoRechazo"
-                     class="hidden bg-red-50 border border-red-200 rounded-2xl p-6 space-y-3"
+                     class="${material.estado == 'RECHAZADO' ? 'block' : 'hidden'} bg-red-50 border border-red-200 rounded-2xl p-6 space-y-3"
                      role="region" aria-live="polite">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0">
@@ -244,7 +244,9 @@
                         </h3>
                     </div>
                     <p id="textoMotivoRechazo"
-                       class="text-sm text-red-800 leading-relaxed pl-12"></p>
+                       class="text-sm text-red-800 leading-relaxed pl-12">
+                        <c:out value="${material.motivoRechazo}"/>
+                    </p>
                 </div>
             </div>
 
@@ -405,25 +407,8 @@
         document.getElementById('motivoRechazoError').classList.add('hidden');
         document.getElementById('motivoRechazoCampo').value = motivo;
 
-        // Actualizar badge de estado a RECHAZADO
-        var badge = document.getElementById('estadoBadge');
-        badge.classList.remove('bg-orange-50', 'text-orange-700', 'bg-green-50', 'text-green-700');
-        badge.classList.add('bg-red-50', 'text-red-700');
-        var punto = document.getElementById('estadoPunto');
-        punto.classList.remove('bg-orange-500', 'bg-green-500');
-        punto.classList.add('bg-red-500');
-        document.getElementById('estadoTexto').textContent = 'RECHAZADO';
-
-        // Mostrar sección de motivo y cerrar modal
-        document.getElementById('textoMotivoRechazo').textContent = motivo;
-        document.getElementById('seccionMotivoRechazo').classList.remove('hidden');
-        document.getElementById('seccionMotivoRechazo').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        cerrarModalRechazo();
-
-        // Redirigir al listado tras breve pausa para que el usuario vea el cambio
-        setTimeout(function() {
-            window.location.href = urlMateriales;
-        }, 1800);
+        // Enviar el formulario directamente al servidor
+        document.getElementById('formRechazar').submit();
     }
 
     document.getElementById('modalRechazo').addEventListener('click', function(e) {

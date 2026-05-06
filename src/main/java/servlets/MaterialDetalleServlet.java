@@ -71,6 +71,7 @@ public class MaterialDetalleServlet extends HttpServlet {
         }
 
         String accion  = req.getParameter("accion");
+        String motivo  = req.getParameter("motivo");
 
         Long id = parseLong(req.getParameter("id"));
         if (id == null) {
@@ -84,6 +85,7 @@ public class MaterialDetalleServlet extends HttpServlet {
         if ("ACEPTAR".equals(accion)) {
             nuevoEstado = EstadoMaterial.APROBADO;
             mensaje = "Material aprobado correctamente.";
+            motivo = null; // Limpiar motivo si se aprueba
         } else if ("RECHAZAR".equals(accion)) {
             nuevoEstado = EstadoMaterial.RECHAZADO;
             mensaje = "Material rechazado correctamente.";
@@ -93,7 +95,7 @@ public class MaterialDetalleServlet extends HttpServlet {
             return;
         }
 
-        boolean actualizado = materialRepository.updateEstado(id, nuevoEstado);
+        boolean actualizado = materialRepository.updateEstadoConMotivo(id, nuevoEstado, motivo);
         if (!actualizado) {
             flash(session, "flashError", "No se encontró el material para actualizar.");
             resp.sendRedirect(req.getContextPath() + "/materiales");
@@ -102,7 +104,7 @@ public class MaterialDetalleServlet extends HttpServlet {
 
         flash(session, "flashMensaje", mensaje);
 
-        resp.sendRedirect(req.getContextPath() + "/materiales");
+        resp.sendRedirect(req.getContextPath() + "/material/detalle?id=" + id);
     }
 
     private void flash(HttpSession session, String key, String value) {

@@ -50,4 +50,7 @@ public class Material {
 
     @Column(name = "usuario_subio")
     private String usuario;
+
+    @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
+    private String motivoRechazo;
 }
