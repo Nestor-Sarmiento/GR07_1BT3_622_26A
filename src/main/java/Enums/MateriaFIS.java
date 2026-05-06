@@ -1,6 +1,6 @@
 package Enums;
 
-public enum MateriaFIS9 {
+public enum MateriaFIS {
     // --- CIENCIAS BÁSICAS Y COMUNES ---
     ALGEBRA_LINEAL("ALGEBRA LINEAL", "MATD113"),
     CALCULO_EN_UNA_VARIABLE("CÁLCULO EN UNA VARIABLE", "MATD123"),
@@ -100,12 +100,19 @@ public enum MateriaFIS9 {
     private final String nombre;
     private final String id;
 
-    MateriaPolitecnica(String nombre, String id) {
+    MateriaFIS(String nombre, String id) {
         this.nombre = nombre;
         this.id = id;
     }
 
-    public String getNombre() { return nombre; }
-    public String getId() { return id; }
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getId() {
+        return id;
+    }
 }
+
+
 
