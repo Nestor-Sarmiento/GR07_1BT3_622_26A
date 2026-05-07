@@ -43,6 +43,10 @@ public class MaterialRepository {
     }
 
     public boolean updateEstado(Long id, EstadoMaterial estado) {
+        return updateEstadoConMotivo(id, estado, null);
+    }
+
+    public boolean updateEstadoConMotivo(Long id, EstadoMaterial estado, String motivo) {
         try (EntityManager em = JpaUtil.createEntityManager()) {
             EntityTransaction tx = em.getTransaction();
             try {
@@ -53,6 +57,7 @@ public class MaterialRepository {
                     return false;
                 }
                 material.setEstado(estado);
+                material.setMotivoRechazo(motivo);
                 em.merge(material);
                 tx.commit();
                 return true;

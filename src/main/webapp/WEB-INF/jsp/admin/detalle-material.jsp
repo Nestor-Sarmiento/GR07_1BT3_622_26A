@@ -186,10 +186,10 @@
                             </div>
                         </div>
                         <%-- Badge de estado --%>
-                        <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-outline-variant/20 flex items-center gap-2
+                            <span id="estadoBadge" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-outline-variant/20 flex items-center gap-2
                                 ${material.estado == 'PENDIENTE' ? 'bg-orange-50 text-orange-700' : (material.estado == 'APROBADO' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}">
-                                <span class="w-2 h-2 rounded-full ${material.estado == 'PENDIENTE' ? 'bg-orange-500' : (material.estado == 'APROBADO' ? 'bg-green-500' : 'bg-red-500')} "></span>
-                                <c:out value="${material.estado}"/>
+                                <span id="estadoPunto" class="w-2 h-2 rounded-full ${material.estado == 'PENDIENTE' ? 'bg-orange-500' : (material.estado == 'APROBADO' ? 'bg-green-500' : 'bg-red-500')} "></span>
+                                <span id="estadoTexto"><c:out value="${material.estado}"/></span>
                             </span>
                     </div>
 
@@ -248,6 +248,25 @@
                         Descargar para revisión
                     </button>
                 </div>
+
+                <%-- Motivo de Rechazo (se muestra si el estado es RECHAZADO) --%>
+                <div id="seccionMotivoRechazo"
+                     class="${material.estado == 'RECHAZADO' ? 'block' : 'hidden'} bg-red-50 border border-red-200 rounded-2xl p-6 space-y-3"
+                     role="region" aria-live="polite">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                            <span class="material-symbols-outlined text-base">cancel</span>
+                        </div>
+                        <h3 class="text-sm font-bold uppercase tracking-widest text-red-700"
+                            style="font-family:'Manrope',sans-serif">
+                            Motivo de Rechazo
+                        </h3>
+                    </div>
+                    <p id="textoMotivoRechazo"
+                       class="text-sm text-red-800 leading-relaxed pl-12">
+                        <c:out value="${material.motivoRechazo}"/>
+                    </p>
+                </div>
             </div>
 
             <%-- ── Columna derecha: acciones ── --%>
@@ -288,10 +307,11 @@
                             </button>
                         </form>
 
-                        <form action="${pageContext.request.contextPath}/material/accion" method="post">
+                        <form id="formRechazar" action="${pageContext.request.contextPath}/material/accion" method="post">
                             <input type="hidden" name="id" value="${material.id}"/>
                             <input type="hidden" name="accion" value="RECHAZAR"/>
-                            <button type="submit"
+                            <input type="hidden" name="motivo" id="motivoRechazoCampo"/>
+                            <button type="button" onclick="abrirModalRechazo()"
                                     class="w-full py-2.5 rounded-xl border border-indigo-100 bg-white text-indigo-600
                                            font-bold text-sm hover:bg-indigo-50 transition-all active:scale-[0.98]
                                            flex items-center justify-center gap-2">
@@ -332,6 +352,95 @@
         <span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">Cuentas</span>
     </a>
 </nav>
+
+<%-- ── Modal: Motivo de Rechazo ── --%>
+<div id="modalRechazo"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+     role="dialog" aria-modal="true" aria-labelledby="modalRechazoTitulo">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 space-y-5">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-600 shrink-0">
+                <span class="material-symbols-outlined">cancel</span>
+            </div>
+            <h2 id="modalRechazoTitulo" class="text-lg font-bold text-on-surface" style="font-family:'Manrope',sans-serif">
+                Rechazar Material
+            </h2>
+        </div>
+
+        <p class="text-sm text-slate-500">
+            Indica el motivo por el que se rechaza este material. Este mensaje será registrado.
+        </p>
+
+        <div>
+            <label for="motivoRechazoTexto" class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
+                Motivo del rechazo <span class="text-red-500">*</span>
+            </label>
+            <textarea id="motivoRechazoTexto" rows="4"
+                      placeholder="Escribe el motivo aquí..."
+                      class="w-full rounded-xl border border-outline-variant/60 bg-surface px-4 py-3 text-sm
+                             text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500
+                             focus:border-transparent transition"></textarea>
+            <p id="motivoRechazoError"
+               class="hidden mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">error</span>
+                El motivo no puede estar vacío.
+            </p>
+        </div>
+
+        <div class="flex gap-3 pt-1">
+            <button type="button" onclick="cerrarModalRechazo()"
+                    class="flex-1 py-2.5 rounded-xl border border-outline-variant/60 bg-white text-on-surface-variant
+                           font-bold text-sm hover:bg-surface-container transition-all active:scale-[0.98]">
+                Cancelar
+            </button>
+            <button type="button" onclick="confirmarRechazo()"
+                    class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white
+                           font-bold text-sm shadow-sm transition-all active:scale-[0.98]
+                           flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg">check</span>
+                Confirmar Rechazo
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var urlMateriales = '${pageContext.request.contextPath}/materiales';
+
+    function abrirModalRechazo() {
+        document.getElementById('motivoRechazoTexto').value = '';
+        document.getElementById('motivoRechazoError').classList.add('hidden');
+        document.getElementById('modalRechazo').classList.remove('hidden');
+        document.getElementById('motivoRechazoTexto').focus();
+    }
+
+    function cerrarModalRechazo() {
+        document.getElementById('modalRechazo').classList.add('hidden');
+    }
+
+    function confirmarRechazo() {
+        var motivo = document.getElementById('motivoRechazoTexto').value.trim();
+        if (!motivo) {
+            document.getElementById('motivoRechazoError').classList.remove('hidden');
+            return;
+        }
+        document.getElementById('motivoRechazoError').classList.add('hidden');
+        document.getElementById('motivoRechazoCampo').value = motivo;
+
+        // Enviar el formulario directamente al servidor
+        document.getElementById('formRechazar').submit();
+    }
+
+    document.getElementById('modalRechazo').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModalRechazo();
+    });
+
+    document.getElementById('motivoRechazoTexto').addEventListener('input', function() {
+        if (this.value.trim()) {
+            document.getElementById('motivoRechazoError').classList.add('hidden');
+        }
+    });
+</script>
 
 </body>
 </html>
