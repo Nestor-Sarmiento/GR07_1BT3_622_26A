@@ -80,29 +80,21 @@ public class MaterialDetalleServlet extends HttpServlet {
             return;
         }
 
-        EstadoMaterial nuevoEstado;
-        String mensaje;
-        if ("ACEPTAR".equals(accion)) {
-            nuevoEstado = EstadoMaterial.APROBADO;
-            mensaje = "Material aprobado correctamente.";
-            motivo = null; // Limpiar motivo si se aprueba
-        } else if ("RECHAZAR".equals(accion)) {
-            nuevoEstado = EstadoMaterial.RECHAZADO;
-            mensaje = "Material rechazado correctamente.";
-        } else {
+        ResultadoAccion resultado = resolverAccion(accion, motivo);
+        if (resultado == null) {
             flash(session, "flashError", "Acción no válida para el material.");
             resp.sendRedirect(req.getContextPath() + "/materiales");
             return;
         }
 
-        boolean actualizado = materialRepository.updateEstadoConMotivo(id, nuevoEstado, motivo);
+        boolean actualizado = materialRepository.updateEstadoConMotivo(id, resultado.estado(), resultado.motivo());
         if (!actualizado) {
             flash(session, "flashError", "No se encontró el material para actualizar.");
             resp.sendRedirect(req.getContextPath() + "/materiales");
             return;
         }
 
-        flash(session, "flashMensaje", mensaje);
+        flash(session, "flashMensaje", resultado.mensaje());
 
         resp.sendRedirect(req.getContextPath() + "/material/detalle?id=" + id);
     }
@@ -117,5 +109,27 @@ public class MaterialDetalleServlet extends HttpServlet {
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    private ResultadoAccion resolverAccion(String accion, String motivo) {
+        if (accion == null) {
+            return null;
+        }
+        return switch (accion) {
+            case "ACEPTAR" -> new ResultadoAccion(
+                    EstadoMaterial.APROBADO,
+                    "Material aprobado correctamente.",
+                    null
+            );
+            case "RECHAZAR" -> new ResultadoAccion(
+                    EstadoMaterial.RECHAZADO,
+                    "Material rechazado correctamente.",
+                    motivo
+            );
+            default -> null;
+        };
+    }
+
+    private record ResultadoAccion(EstadoMaterial estado, String mensaje, String motivo) {
     }
 }
