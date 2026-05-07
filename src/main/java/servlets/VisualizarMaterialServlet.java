@@ -32,15 +32,8 @@ public class VisualizarMaterialServlet extends HttpServlet {
 
         // Filtrar materiales por el nombre del usuario logueado
         List<Material> materiales = materialRepository.findByUsuario(tutor.getNombre());
-
-        long total = (materiales != null) ? materiales.size() : 0;
-        long aprobados = (materiales != null) ? materiales.stream().filter(m -> m.getEstado() == EstadoMaterial.APROBADO).count() : 0;
-        long enRevision = (materiales != null) ? materiales.stream().filter(m -> m.getEstado() == EstadoMaterial.PENDIENTE).count() : 0;
-
-        req.setAttribute("materiales", materiales);
-        req.setAttribute("totalMateriales", total);
-        req.setAttribute("materialesAprobados", aprobados);
-        req.setAttribute("materialesEnRevision", enRevision);
+        long[] resumen = calcularResumenMateriales(materiales);
+        cargarAtributosVista(req, materiales, resumen);
 
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
@@ -58,5 +51,23 @@ public class VisualizarMaterialServlet extends HttpServlet {
 
     private void redirigirLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.sendRedirect(req.getContextPath() + "/login");
+    }
+
+    private long[] calcularResumenMateriales(List<Material> materiales) {
+        long total = (materiales != null) ? materiales.size() : 0;
+        long aprobados = (materiales != null)
+                ? materiales.stream().filter(m -> m.getEstado() == EstadoMaterial.APROBADO).count()
+                : 0;
+        long enRevision = (materiales != null)
+                ? materiales.stream().filter(m -> m.getEstado() == EstadoMaterial.PENDIENTE).count()
+                : 0;
+        return new long[]{total, aprobados, enRevision};
+    }
+
+    private void cargarAtributosVista(HttpServletRequest req, List<Material> materiales, long[] resumen) {
+        req.setAttribute("materiales", materiales);
+        req.setAttribute("totalMateriales", resumen[0]);
+        req.setAttribute("materialesAprobados", resumen[1]);
+        req.setAttribute("materialesEnRevision", resumen[2]);
     }
 }
