@@ -15,11 +15,11 @@ import jakarta.servlet.http.Part;
 import schemas.Material;
 import schemas.Usuario;
 import repositories.MaterialRepository;
+import servlets.validators.ArchivoMaterialValidator;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Set;
 import java.util.UUID;
 
 @WebServlet(name = "subirMaterialServlet", urlPatterns = "/tutor/subir")
@@ -57,9 +57,9 @@ public class SubirMaterialServlet extends HttpServlet {
         }
 
         String nombreArchivoOriginal = archivoPart.getSubmittedFileName();
-        String extension = obtenerExtension(nombreArchivoOriginal);
+        String extension = ArchivoMaterialValidator.obtenerExtension(nombreArchivoOriginal);
 
-        if (!esExtensionPermitida(extension)) {
+        if (!ArchivoMaterialValidator.esExtensionPermitida(extension)) {
             req.setAttribute("error", "Extensión no permitida");
             req.setAttribute("categorias", CategoriaMaterial.values());
             req.getRequestDispatcher(VIEW).forward(req, resp);
@@ -72,7 +72,7 @@ public class SubirMaterialServlet extends HttpServlet {
         String rutaArchivo = uploadsDir + File.separator + nombreArchivoGuardado;
 
         try (InputStream input = archivoPart.getInputStream();
-             OutputStream output = new FileOutputStream(rutaArchivo)) {
+            OutputStream output = new FileOutputStream(rutaArchivo)) {
             input.transferTo(output);
         }
 
@@ -112,18 +112,5 @@ public class SubirMaterialServlet extends HttpServlet {
             return false;
         }
         return true;
-    }
-
-    // Métodos extraídos para facilitar pruebas unitarias sin mocks
-    public static boolean esExtensionPermitida(String extension) {
-        if (extension == null || extension.isBlank()) return false;
-        java.util.Set<String> permitidas = java.util.Set.of(".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".csv", ".xml");
-        return permitidas.contains(extension.toLowerCase());
-    }
-
-    public static String obtenerExtension(String nombreArchivo) {
-        if (nombreArchivo == null) return "";
-        int idx = nombreArchivo.lastIndexOf('.');
-        return (idx != -1) ? nombreArchivo.substring(idx).toLowerCase() : "";
     }
 }
