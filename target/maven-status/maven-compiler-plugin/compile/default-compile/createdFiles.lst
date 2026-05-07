@@ -1,3 +1,4 @@
+servlets\DetalleMaterialTutorServlet.class
 schemas\Material.class
 servlets\UsuarioCrearServlet.class
 repositories\UsuarioRepository.class
@@ -17,15 +18,21 @@ servlets\EstudianteEditarServlet.class
 Enums\EstadoMaterial.class
 Enums\Rol.class
 servlets\LoginServlet.class
+Enums\CategoriaMaterial.class
 servlets\UsuarioEditarServlet.class
 services\EstudianteService.class
+servlets\RegistroServlet.class
 servlets\MaterialDetalleServlet.class
 Enums\Estados.class
+servlets\SubirMaterialServlet.class
 servlets\UsuarioServlet.class
 schemas\Admin.class
 pdciae_back\PdciaeBackApplication.class
+servlets\TutorDashboardServlet.class
 servlets\LogoutServlet.class
 servlets\ServletUtils.class
 servlets\DashboardAdminServlet.class
 repositories\JpaUtil.class
+servlets\VisualizarMaterialServlet.class
 servlets\MaterialServlet.class
+Enums\MateriaFIS.class

@@ -21,8 +21,11 @@ public class Material {
     @Column(name = "id_material")
     private Long id;
 
-    @Column(name = "nombre_archivo")
+    @Column(name = "titulo")
     private String titulo;
+
+    @Column(name = "nombre_archivo")
+    private String nombreArchivo;
 
     @Column(name = "descripcion")
     private String descripcion;
@@ -43,6 +46,7 @@ public class Material {
     private Double costo;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
     private EstadoMaterial estado;
 
     @Column(name = "fecha_envio")
