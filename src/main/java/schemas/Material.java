@@ -24,6 +24,9 @@ public class Material {
     @Column(name = "titulo")
     private String titulo;
 
+    @Column(name = "nombre_archivo")
+    private String nombreArchivo;
+
     @Column(name = "descripcion")
     private String descripcion;
 

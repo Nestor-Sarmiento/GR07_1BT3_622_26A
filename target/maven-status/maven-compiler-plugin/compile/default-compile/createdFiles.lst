@@ -1,3 +1,4 @@
+servlets\DetalleMaterialTutorServlet.class
 schemas\Material.class
 servlets\UsuarioCrearServlet.class
 repositories\UsuarioRepository.class
@@ -32,5 +33,6 @@ servlets\LogoutServlet.class
 servlets\ServletUtils.class
 servlets\DashboardAdminServlet.class
 repositories\JpaUtil.class
+servlets\VisualizarMaterialServlet.class
 servlets\MaterialServlet.class
 Enums\MateriaFIS.class

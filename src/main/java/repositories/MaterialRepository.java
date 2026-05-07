@@ -64,5 +64,14 @@ public class MaterialRepository {
             }
         }
     }
-}
 
+    public List<Material> findByUsuario(String nombreUsuario) {
+        try (EntityManager em = JpaUtil.createEntityManager()) {
+            return em.createQuery(
+                            "SELECT m FROM Material m WHERE m.usuario = :usuario ORDER BY m.fechaEnvio DESC",
+                            Material.class)
+                    .setParameter("usuario", nombreUsuario)
+                    .getResultList();
+        }
+    }
+}
