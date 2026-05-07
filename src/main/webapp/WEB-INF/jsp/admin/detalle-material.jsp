@@ -13,32 +13,47 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Detalle de Material - OlwShare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = {
             darkMode: "class",
-            theme: { extend: { colors: {
-                "surface": "#f7f9fc", "surface-container": "#eceef1",
-                "surface-container-low": "#f2f4f7", "surface-container-lowest": "#ffffff",
-                "surface-container-high": "#e6e8eb", "surface-container-highest": "#e0e3e6",
-                "on-surface": "#191c1e", "on-surface-variant": "#454652",
-                "primary": "#24389c", "primary-container": "#3f51b5",
-                "primary-fixed": "#dee0ff", "on-primary": "#ffffff",
-                "on-primary-fixed-variant": "#293ca0", "on-primary-container": "#cacfff",
-                "secondary": "#006a60", "secondary-container": "#85f6e5",
-                "on-secondary-container": "#007166",
-                "tertiary-fixed": "#ffdcc6", "on-tertiary-fixed-variant": "#713700",
-                "outline": "#757684", "outline-variant": "#c5c5d4",
-                "error": "#ba1a1a", "error-container": "#ffdad6"
-            }}}
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#f7f9fc", "surface-container": "#eceef1",
+                        "surface-container-low": "#f2f4f7", "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e6e8eb", "surface-container-highest": "#e0e3e6",
+                        "on-surface": "#191c1e", "on-surface-variant": "#454652",
+                        "primary": "#24389c", "primary-container": "#3f51b5",
+                        "primary-fixed": "#dee0ff", "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#293ca0", "on-primary-container": "#cacfff",
+                        "secondary": "#006a60", "secondary-container": "#85f6e5",
+                        "on-secondary-container": "#007166",
+                        "tertiary-fixed": "#ffdcc6", "on-tertiary-fixed-variant": "#713700",
+                        "outline": "#757684", "outline-variant": "#c5c5d4",
+                        "error": "#ba1a1a", "error-container": "#ffdad6"
+                    }
+                }
+            }
         }
     </script>
     <style>
-        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; vertical-align:middle; }
-        body { font-family:'Inter', sans-serif; }
-        h1,h2,h3 { font-family:'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Manrope', sans-serif;
+        }
     </style>
 </head>
 <body class="bg-surface text-on-surface">
@@ -51,7 +66,8 @@
 <%-- ── Sidebar ── --%>
 <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-slate-50 py-6 space-y-4 z-50">
     <div class="px-6 mb-4">
-        <h2 class="text-lg font-extrabold text-indigo-900 tracking-tight" style="font-family:'Manrope',sans-serif">OlwShare</h2>
+        <h2 class="text-lg font-extrabold text-indigo-900 tracking-tight" style="font-family:'Manrope',sans-serif">
+            OlwShare</h2>
         <p class="text-xs text-slate-500">Administración</p>
     </div>
     <nav class="flex-1 space-y-1 px-4">
@@ -65,18 +81,19 @@
            class="flex items-center gap-3 px-4 py-3 rounded-lg text-indigo-700 font-bold border-r-4 border-indigo-600 bg-indigo-50/50 transition-all">
             <span class="material-symbols-outlined">library_books</span>
             Gestión de Materiales
-        
-         <a href="${pageContext.request.contextPath}/usuarios"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
-             <span class="material-symbols-outlined">manage_accounts</span>
-             Gestión de Cuentas
-         </a>
-         <a href="${pageContext.request.contextPath}/estudiantes"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
-             <span class="material-symbols-outlined">school</span>
-             Gestión de Estudiantes
-         </a>
-     </nav>
+        </a>
+
+        <a href="${pageContext.request.contextPath}/usuarios"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            <span class="material-symbols-outlined">manage_accounts</span>
+            Gestión de Cuentas
+        </a>
+        <a href="${pageContext.request.contextPath}/estudiantes"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            <span class="material-symbols-outlined">school</span>
+            Gestión de Estudiantes
+        </a>
+    </nav>
     <div class="px-4 mt-auto">
         <a href="${pageContext.request.contextPath}/logout"
            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-error hover:bg-red-50 transition-all">
@@ -158,18 +175,18 @@
                             </div>
                             <div>
                                 <h2 class="text-xl font-bold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                        <c:out value="${material.titulo}"/>
+                                    <c:out value="${material.titulo}"/>
                                 </h2>
                                 <p class="text-sm text-slate-500">
-                                        ID: <c:out value="${material.id}"/>
+                                    ID: <c:out value="${material.id}"/>
                                 </p>
-                                    <p class="text-xs text-slate-500 mt-1">
-                                        Archivo: <c:out value="${material.titulo}"/>
-                                    </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Archivo: <c:out value="${material.titulo}"/>
+                                </p>
                             </div>
                         </div>
                         <%-- Badge de estado --%>
-                            <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-outline-variant/20 flex items-center gap-2
+                        <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-outline-variant/20 flex items-center gap-2
                                 ${material.estado == 'PENDIENTE' ? 'bg-orange-50 text-orange-700' : (material.estado == 'APROBADO' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}">
                                 <span class="w-2 h-2 rounded-full ${material.estado == 'PENDIENTE' ? 'bg-orange-500' : (material.estado == 'APROBADO' ? 'bg-green-500' : 'bg-red-500')} "></span>
                                 <c:out value="${material.estado}"/>
@@ -188,7 +205,8 @@
                         <%-- Grid de metadatos --%>
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-6 border-t border-outline-variant/20">
                             <div>
-                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">ID Materia</h3>
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">ID
+                                    Materia</h3>
                                 <div class="text-on-surface font-semibold text-sm">
                                     <c:out value="${material.idMateria}"/>
                                 </div>
@@ -200,7 +218,8 @@
                                 </span>
                             </div>
                             <div>
-                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Tipo de Archivo</h3>
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Tipo de
+                                    Archivo</h3>
                                 <div class="flex items-center gap-2 text-on-surface font-semibold text-sm">
                                     <span class="material-symbols-outlined text-indigo-500">picture_as_pdf</span>
                                     <c:out value="${material.tipoArchivo}"/>
@@ -234,7 +253,8 @@
             <%-- ── Columna derecha: acciones ── --%>
             <div class="space-y-6">
                 <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant/30">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Información de Envío</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Información de
+                        Envío</h3>
 
                     <div class="flex items-center gap-4 mb-6">
                         <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
