@@ -30,9 +30,6 @@ public class Material {
     @Column(name = "descripcion")
     private String descripcion;
 
-    @Column(name = "nombre_archivo")
-    private String nombreArchivo;
-
     @Column(name = "id_materia")
     private String idMateria;
 
@@ -57,4 +54,7 @@ public class Material {
 
     @Column(name = "usuario_subio")
     private String usuario;
+
+    @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
+    private String motivoRechazo;
 }

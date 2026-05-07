@@ -7,12 +7,15 @@ repositories\AdminRepository.class
 schemas\Usuario.class
 servlets\EstudianteServlet.class
 repositories\MaterialRepository.class
+schemas\Usuario$UsuarioBuilderImpl.class
 servlets\EstudianteCrearServlet.class
 servlets\validators\PasswordValidator.class
 servlets\EstudianteDetalleServlet.class
+servlets\validators\ArchivoMaterialValidator.class
 servlets\PerfilServlet.class
 servlets\UsuarioDetalleServlet.class
 web\AppContextListener.class
+schemas\Admin$AdminBuilderImpl.class
 schemas\Usuario$UsuarioBuilder.class
 servlets\EstudianteEditarServlet.class
 Enums\EstadoMaterial.class
@@ -34,5 +37,6 @@ servlets\ServletUtils.class
 servlets\DashboardAdminServlet.class
 repositories\JpaUtil.class
 servlets\VisualizarMaterialServlet.class
+schemas\Admin$AdminBuilder.class
 servlets\MaterialServlet.class
 Enums\MateriaFIS.class
