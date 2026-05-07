@@ -4,21 +4,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 public final class JpaUtil {
     private static final Logger LOGGER = Logger.getLogger(JpaUtil.class.getName());
-    private static final Map<String, String> DOTENV = loadDotenv();
     private static volatile EntityManagerFactory emf;
 
     private JpaUtil() {
@@ -27,128 +18,45 @@ public final class JpaUtil {
     private static Map<String, Object> buildOverrides() {
         Map<String, Object> overrides = new LinkedHashMap<>();
 
-        String dbUrl = firstNonBlank(env("DB_URL"), env("DATABASE_URL"), env("JDBC_DATABASE_URL"));
-        if (!dbUrl.isBlank()) {
-            overrides.put("jakarta.persistence.jdbc.driver",
-                    firstNonBlank(env("DB_DRIVER"), "org.postgresql.Driver"));
-            overrides.put("jakarta.persistence.jdbc.url", dbUrl);
+        // Configuración quemada (anteriormente en .env)
+        String dbUrl = "jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
+        String dbUser = "postgres.yszzewnynkvmkeygvksh";
+        String dbPassword = "owlshare2026";
+        String dbDriver = "org.postgresql.Driver";
+        String hibernateDialect = "org.hibernate.dialect.PostgreSQLDialect";
+        String hbm2ddlAuto = "update";
+        String showSql = "true";
 
-            String dbUser = firstNonBlank(env("DB_USER"), env("DATABASE_USER"));
-            if (!dbUser.isBlank()) {
-                overrides.put("jakarta.persistence.jdbc.user", dbUser);
-            }
+        overrides.put("jakarta.persistence.jdbc.driver", dbDriver);
+        overrides.put("jakarta.persistence.jdbc.url", dbUrl);
+        overrides.put("jakarta.persistence.jdbc.user", dbUser);
+        overrides.put("jakarta.persistence.jdbc.password", dbPassword);
+        overrides.put("hibernate.dialect", hibernateDialect);
+        overrides.put("hibernate.hbm2ddl.auto", hbm2ddlAuto);
+        overrides.put("hibernate.show_sql", showSql);
 
-            String dbPassword = firstNonBlank(env("DB_PASSWORD"), env("DATABASE_PASSWORD"));
-            if (!dbPassword.isBlank()) {
-                overrides.put("jakarta.persistence.jdbc.password", dbPassword);
-            }
-
-            overrides.put("hibernate.dialect",
-                    firstNonBlank(env("HIBERNATE_DIALECT"), "org.hibernate.dialect.PostgreSQLDialect"));
-            LOGGER.info("JPA configurado con base externa: " + safeDbUrl(dbUrl));
-        } else {
-            LOGGER.warning("No se encontró DB_URL/DATABASE_URL. Se usará la configuración por defecto de persistence.xml.");
-        }
-
-        String ddlAuto = env("HIBERNATE_HBM2DDL_AUTO");
-        if (!ddlAuto.isBlank()) {
-            overrides.put("hibernate.hbm2ddl.auto", ddlAuto);
-        }
-
-        String showSql = env("HIBERNATE_SHOW_SQL");
-        if (!showSql.isBlank()) {
-            overrides.put("hibernate.show_sql", showSql);
-        }
+        LOGGER.info("JPA configurado con credenciales internas (hardcoded).");
 
         return overrides;
     }
 
     private static String env(String key) {
-        String fromDotenv = DOTENV.get(key);
-        if (fromDotenv != null && !fromDotenv.isBlank()) {
-            return fromDotenv.trim();
-        }
-
-        String fromSystem = System.getenv(key);
-        return fromSystem == null ? "" : fromSystem.trim();
-    }
-
-    private static Map<String, String> loadDotenv() {
-        Map<String, String> values = new LinkedHashMap<>();
-        Path path = findDotenvPath();
-        if (path == null || !Files.exists(path)) {
-            return values;
-        }
-
-        try {
-            for (String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {
-                String trimmed = line.trim();
-                if (trimmed.isBlank() || trimmed.startsWith("#") || !trimmed.contains("=")) {
-                    continue;
-                }
-
-                int equalsIndex = trimmed.indexOf('=');
-                String key = trimmed.substring(0, equalsIndex).trim();
-                String value = trimmed.substring(equalsIndex + 1).trim();
-
-                if ((value.startsWith("\"") && value.endsWith("\""))
-                        || (value.startsWith("'") && value.endsWith("'"))) {
-                    value = value.substring(1, value.length() - 1);
-                }
-
-                if (!key.isBlank()) {
-                    values.put(key, value);
-                }
-            }
-        } catch (IOException ignored) {
-            // Fall back to system environment variables only.
-        }
-
-        return values;
-    }
-
-    private static Path findDotenvPath() {
-        List<Path> candidates = new ArrayList<>();
-
-        addIfPresent(candidates, systemPath("user.dir"));
-        addIfPresent(candidates, systemPath("catalina.base"));
-        addIfPresent(candidates, systemPath("catalina.home"));
-        addIfPresent(candidates, classLocationPath());
-
-        for (Path candidate : candidates) {
-            Path current = candidate;
-            for (int i = 0; i < 6 && current != null; i++) {
-                Path dotenv = current.resolve(".env");
-                if (Files.exists(dotenv)) {
-                    return dotenv;
-                }
-                current = current.getParent();
-            }
-        }
-
-        return Path.of(".env");
-    }
-
-    private static void addIfPresent(List<Path> candidates, Path path) {
-        if (path != null) {
-            candidates.add(path);
-        }
-    }
-
-    private static Path systemPath(String key) {
-        String value = System.getProperty(key);
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return Path.of(value);
-    }
-
-    private static Path classLocationPath() {
-        try {
-            return Path.of(Objects.requireNonNull(JpaUtil.class.getProtectionDomain().getCodeSource()).getLocation().toURI())
-                    .getParent();
-        } catch (URISyntaxException | NullPointerException ex) {
-            return null;
+        // Mapeo de claves para mantener compatibilidad con métodos existentes
+        switch (key) {
+            case "DB_URL": return "jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
+            case "DB_USER": return "postgres.yszzewnynkvmkeygvksh";
+            case "DB_PASSWORD": return "owlshare2026";
+            case "DB_DRIVER": return "org.postgresql.Driver";
+            case "HIBERNATE_DIALECT": return "org.hibernate.dialect.PostgreSQLDialect";
+            case "HIBERNATE_HBM2DDL_AUTO": return "update";
+            case "HIBERNATE_SHOW_SQL": return "true";
+            case "ADMIN_EMAIL": return "admin@olwshare.com";
+            case "ADMIN_PASSWORD": return "OlwShare2026!";
+            case "ADMIN_NOMBRE": return "Administrador";
+            case "ADMIN_APELLIDO": return "Sistema";
+            default:
+                String fromSystem = System.getenv(key);
+                return fromSystem == null ? "" : fromSystem.trim();
         }
     }
 

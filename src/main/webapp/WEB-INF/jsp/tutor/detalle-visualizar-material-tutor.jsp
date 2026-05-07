@@ -132,7 +132,7 @@
                         Detalle de Recurso
                     </div>
                     <h2 class="text-4xl font-extrabold text-on-surface tracking-tight leading-tight" style="font-family:'Manrope',sans-serif">
-                        <c:out value="${not empty material ? material.titulo : 'Guía de Macroeconomía Avanzada'}"/>
+                        <c:out value="${not empty material.titulo ? material.titulo : 'Sin título'}"/>
                     </h2>
                 </div>
 
@@ -140,23 +140,28 @@
                 <div class="flex flex-col items-start md:items-end gap-2">
                     <span class="text-xs font-bold text-outline/60 uppercase tracking-widest">Estado Actual</span>
                     <c:choose>
-                        <c:when test="${not empty material && material.estado == 'APROBADO'}">
+                        <c:when test="${material.estado == 'APROBADO'}">
                             <div class="flex items-center gap-3 px-6 py-3 bg-secondary/10 text-secondary rounded-xl">
                                 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
                                 <span class="font-bold text-lg" style="font-family:'Manrope',sans-serif">Aprobado</span>
                             </div>
                         </c:when>
-                        <c:when test="${not empty material && (material.estado == 'EN_REVISION' || material.estado == 'PENDIENTE')}">
+                        <c:when test="${material.estado == 'PENDIENTE'}">
                             <div class="flex items-center gap-3 px-6 py-3 rounded-xl" style="background-color:rgba(108,52,0,0.1);color:#6c3400">
                                 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">schedule</span>
                                 <span class="font-bold text-lg" style="font-family:'Manrope',sans-serif">En Revisión</span>
                             </div>
                         </c:when>
-                        <c:otherwise>
-                            <%-- Demo: Rechazado --%>
+                        <c:when test="${material.estado == 'RECHAZADO'}">
                             <div class="flex items-center gap-3 px-6 py-3 bg-error-container text-on-error-container rounded-xl">
                                 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">cancel</span>
                                 <span class="font-bold text-lg" style="font-family:'Manrope',sans-serif">Rechazado</span>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="flex items-center gap-3 px-6 py-3 bg-slate-100 text-slate-500 rounded-xl">
+                                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">help_outline</span>
+                                <span class="font-bold text-lg" style="font-family:'Manrope',sans-serif">Desconocido</span>
                             </div>
                         </c:otherwise>
                     </c:choose>
@@ -175,27 +180,27 @@
                             <div class="space-y-1">
                                 <label class="text-xs font-bold text-outline/60 uppercase tracking-widest">Nombre del archivo</label>
                                 <p class="text-lg font-bold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                    <c:out value="${not empty material ? material.nombreArchivo : 'Guía_Macroeconomía.pdf'}"/>
+                                    <c:out value="${not empty material.nombreArchivo ? material.nombreArchivo : 'Sin archivo'}"/>
                                 </p>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-xs font-bold text-outline/60 uppercase tracking-widest">Materia</label>
                                 <p class="text-lg font-bold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                    <c:out value="${not empty material ? material.nombreMateria : 'Macroeconomía I'}"/>
-                                    <span class="text-primary/60 font-normal ml-2 text-base">ECO-101</span>
+                                    <c:out value="${not empty material.nombreMateria ? material.nombreMateria : 'Sin materia'}"/>
+                                    <span class="text-primary/60 font-normal ml-2 text-base"><c:out value="${material.idMateria}"/></span>
                                 </p>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-xs font-bold text-outline/60 uppercase tracking-widest">Tipo de Archivo</label>
                                 <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-error">picture_as_pdf</span>
-                                    <p class="text-on-surface font-medium">PDF Document</p>
+                                    <span class="material-symbols-outlined text-error">description</span>
+                                    <p class="text-on-surface font-medium"><c:out value="${not empty material.tipoArchivo ? material.tipoArchivo : 'N/A'}"/></p>
                                 </div>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-xs font-bold text-outline/60 uppercase tracking-widest">Costo Sugerido</label>
                                 <p class="text-2xl font-extrabold text-secondary" style="font-family:'Manrope',sans-serif">
-                                    $<c:out value="${not empty material ? material.costo : '15.00'}"/>
+                                    $<span class="cost-value"><c:out value="${not empty material.costo ? material.costo : '0.00'}"/></span>
                                 </p>
                             </div>
                         </div>
@@ -208,26 +213,12 @@
                             Descripción Detallada
                         </h3>
                         <div class="text-on-surface-variant leading-relaxed space-y-4">
-                            <c:choose>
-                                <c:when test="${not empty material}">
-                                    <p><c:out value="${material.descripcion}"/></p>
-                                </c:when>
-                                <c:otherwise>
-                                    <p>
-                                        Este material comprende una síntesis exhaustiva de los capítulos 5 al 12 del temario oficial de Macroeconomía I.
-                                        Incluye diagramas vectoriales de alta resolución explicando el equilibrio de mercado en modelos de economía cerrada y abierta.
-                                    </p>
-                                    <p>
-                                        Se han añadido ejercicios resueltos paso a paso y una sección especial sobre la Regla de Taylor aplicada a contextos de alta volatilidad.
-                                        Ideal para preparación de exámenes parciales y finales.
-                                    </p>
-                                </c:otherwise>
-                            </c:choose>
+                            <p><c:out value="${not empty material.descripcion ? material.descripcion : 'Sin descripción disponible.'}"/></p>
                         </div>
                     </div>
 
-                    <%-- Motivo de rechazo (visible solo cuando el estado es RECHAZADO o en demo) --%>
-                    <c:if test="${empty material || material.estado == 'RECHAZADO'}">
+                    <%-- Motivo de rechazo (visible solo cuando el estado es RECHAZADO) --%>
+                    <c:if test="${material.estado == 'RECHAZADO'}">
                         <div class="bg-error-container/40 rounded-xl p-8 border-l-4 border-error">
                             <div class="flex items-start gap-4">
                                 <div class="p-2 bg-error-container rounded-lg text-error flex-shrink-0">
@@ -236,8 +227,7 @@
                                 <div>
                                     <h4 class="text-lg font-bold text-on-error-container mb-2" style="font-family:'Manrope',sans-serif">Motivo del Rechazo</h4>
                                     <p class="text-on-error-container/80 leading-relaxed">
-                                        <c:out value="${not empty material ? material.motivoRechazo :
-                                            'El documento contiene marcas de agua externas de otra institución educativa. Por políticas de OlwShare, todo el material subido debe ser original o libre de marcas comerciales de terceros. Por favor, suba una versión limpia del archivo.'}"/>
+                                        <c:out value="${not empty material.motivoRechazo ? material.motivoRechazo : 'No se especificó un motivo.'}"/>
                                     </p>
                                     <a href="${pageContext.request.contextPath}/tutor/subir"
                                        class="mt-6 inline-flex items-center gap-2 px-6 py-2 bg-error text-white rounded-lg font-bold hover:opacity-90 transition-all">
@@ -275,13 +265,13 @@
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-on-surface-variant">Fecha de subida</span>
                                 <span class="font-bold text-on-surface">
-                                    <c:out value="${not empty material ? material.fechaSubida : '12 Oct, 2023'}"/>
+                                    <c:out value="${material.fechaEnvio != null ? material.fechaEnvio : 'N/A'}"/>
                                 </span>
                             </div>
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-on-surface-variant">Categoría</span>
                                 <span class="font-bold text-on-surface">
-                                    <c:out value="${not empty material ? material.nombreMateria : 'Economía'}"/>
+                                    <c:out value="${not empty material.nombreMateria ? material.nombreMateria : 'General'}"/>
                                 </span>
                             </div>
                         </div>
