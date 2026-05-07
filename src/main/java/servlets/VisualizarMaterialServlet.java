@@ -24,9 +24,9 @@ public class VisualizarMaterialServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        if (session == null || !(session.getAttribute("usuarioLogueado") instanceof Usuario tutor)
-                || tutor.getRol() != Rol.TUTOR) {
-            resp.sendRedirect(req.getContextPath() + "/login");
+        Usuario tutor = obtenerTutorAutenticado(session);
+        if (tutor == null) {
+            redirigirLogin(req, resp);
             return;
         }
 
@@ -43,5 +43,20 @@ public class VisualizarMaterialServlet extends HttpServlet {
         req.setAttribute("materialesEnRevision", enRevision);
 
         req.getRequestDispatcher(VIEW).forward(req, resp);
+    }
+
+    private Usuario obtenerTutorAutenticado(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object usuarioLogueado = session.getAttribute("usuarioLogueado");
+        if (!(usuarioLogueado instanceof Usuario tutor)) {
+            return null;
+        }
+        return tutor.getRol() == Rol.TUTOR ? tutor : null;
+    }
+
+    private void redirigirLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.sendRedirect(req.getContextPath() + "/login");
     }
 }
