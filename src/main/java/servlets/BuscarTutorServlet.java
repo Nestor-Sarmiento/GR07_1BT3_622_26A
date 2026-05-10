@@ -1,5 +1,6 @@
 package servlets;
 
+import Enums.Carrera;
 import Enums.Estados;
 import Enums.MateriasCatalogo;
 import Enums.Rol;
@@ -38,53 +39,67 @@ public class BuscarTutorServlet extends HttpServlet {
             return;
         }
 
+        Estudiante estudiantePerfil = null;
         try (EntityManager em = JpaUtil.createEntityManager()) {
             Long idPersona = estudiante.getIdPersona();
             if (idPersona != null) {
-                Estudiante estudiantePerfil = em.find(Estudiante.class, idPersona);
-                req.setAttribute("estudiantePerfil", estudiantePerfil);
+                estudiantePerfil = em.find(Estudiante.class, idPersona);
             }
         }
+        req.setAttribute("estudiantePerfil", estudiantePerfil);
+
+        Carrera carreraEst = estudiantePerfil != null ? estudiantePerfil.getCarrera() : null;
+        List<MateriasCatalogo.Opcion> materiasBusqueda = new ArrayList<>(MateriasCatalogo.porCarrera(carreraEst));
+        materiasBusqueda.sort(Comparator.comparing(MateriasCatalogo.Opcion::getNombre, String.CASE_INSENSITIVE_ORDER));
+        req.setAttribute("materiasBusqueda", materiasBusqueda);
+        req.setAttribute("materiasAccesoRapido", materiasBusqueda.stream().limit(4).toList());
 
         String codigoParam = ServletUtils.value(req.getParameter("codigo"));
         if (codigoParam.isBlank()) {
             codigoParam = ServletUtils.value(req.getParameter("materia"));
         }
-        req.setAttribute("codigoSeleccionadoParam", codigoParam);
+        final String codigoBuscar = codigoParam;
+        req.setAttribute("codigoSeleccionadoParam", codigoBuscar);
 
         List<TutorListadoDTO> tutoresResultado = new ArrayList<>();
-        if (!codigoParam.isBlank()) {
-            Optional<MateriasCatalogo.Opcion> opOpt = MateriasCatalogo.buscarPorCodigo(codigoParam);
-            if (opOpt.isEmpty()) {
-                req.setAttribute("errorMateria", "La materia seleccionada no es válida.");
+        if (!codigoBuscar.isBlank()) {
+            if (carreraEst == null) {
+                req.setAttribute("errorMateria",
+                        "Registra tu carrera en Mi perfil para buscar tutores por materias de tu plan.");
             } else {
-                MateriasCatalogo.Opcion op = opOpt.get();
-                req.setAttribute("materiaSeleccionada", op);
-                try (EntityManager em = JpaUtil.createEntityManager()) {
-                    String codCanon = op.getCodigo();
-                    /*
-                     * JOIN sobre la colección es más fiable que MEMBER OF con @ElementCollection(Set<String>)
-                     * en Hibernate 6. Se excluyen solo tutores INACTIVO; el resto (ACTIVO, POR_VERIFICAR, null)
-                     * aparece en búsqueda para no ocultar cuentas por desajuste de estado en BD.
-                     */
-                    List<Tutor> encontrados = em.createQuery(
-                            "SELECT DISTINCT t FROM Tutor t JOIN t.codigosMateriaRelacionadas c "
-                                    + "WHERE LOWER(TRIM(c)) = LOWER(TRIM(:cod)) "
-                                    + "AND (t.estado IS NULL OR t.estado <> :inactivo)",
-                            Tutor.class)
-                            .setParameter("cod", codCanon)
-                            .setParameter("inactivo", Estados.INACTIVO)
-                            .getResultList();
-                    encontrados.sort(Comparator.comparing(Tutor::getNombre, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
-                    for (Tutor t : encontrados) {
-                        tutoresResultado.add(toDto(t));
+                Optional<MateriasCatalogo.Opcion> opOpt = materiasBusqueda.stream()
+                        .filter(o -> o.getCodigo().equalsIgnoreCase(codigoBuscar.trim()))
+                        .findFirst();
+                if (opOpt.isEmpty()) {
+                    req.setAttribute("errorMateria", "Esa materia no corresponde a tu carrera. Elige una del listado.");
+                } else {
+                    MateriasCatalogo.Opcion op = opOpt.get();
+                    req.setAttribute("materiaSeleccionada", op);
+                    try (EntityManager em = JpaUtil.createEntityManager()) {
+                        String codCanon = op.getCodigo();
+                        /*
+                         * JOIN sobre la colección es más fiable que MEMBER OF con @ElementCollection(Set<String>)
+                         * en Hibernate 6. Se excluyen solo tutores INACTIVO; el resto (ACTIVO, POR_VERIFICAR, null)
+                         * aparece en búsqueda para no ocultar cuentas por desajuste de estado en BD.
+                         */
+                        List<Tutor> encontrados = em.createQuery(
+                                "SELECT DISTINCT t FROM Tutor t JOIN t.codigosMateriaRelacionadas c "
+                                        + "WHERE LOWER(TRIM(c)) = LOWER(TRIM(:cod)) "
+                                        + "AND (t.estado IS NULL OR t.estado <> :inactivo)",
+                                Tutor.class)
+                                .setParameter("cod", codCanon)
+                                .setParameter("inactivo", Estados.INACTIVO)
+                                .getResultList();
+                        encontrados.sort(Comparator.comparing(Tutor::getNombre, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+                        for (Tutor t : encontrados) {
+                            tutoresResultado.add(toDto(t));
+                        }
                     }
                 }
             }
         }
 
         req.setAttribute("tutoresResultado", tutoresResultado);
-        req.setAttribute("materiasBusqueda", MateriasCatalogo.todasOpcionesBusqueda());
         req.getRequestDispatcher("/WEB-INF/jsp/estudiante/buscar-tutor.jsp").forward(req, resp);
     }
 

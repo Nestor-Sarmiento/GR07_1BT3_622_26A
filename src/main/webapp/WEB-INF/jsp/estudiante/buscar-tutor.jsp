@@ -2,9 +2,10 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%-- =============================================
      Vista: buscar-tutor.jsp
-     Servlet: BuscarTutorServlet → GET /estudiante/buscar-tutor[?materia=ENUM]
+     Servlet: BuscarTutorServlet → GET /estudiante/buscar-tutor[?codigo=SIGLA]
      Session: usuarioLogueado (Rol.ESTUDIANTE)
-     Atributos: materiasBusqueda, codigoSeleccionadoParam, materiaSeleccionada (Opcion), tutoresResultado, errorMateria
+     Atributos: estudiantePerfil, materiasBusqueda (plan del estudiante), materiasAccesoRapido,
+                codigoSeleccionadoParam, materiaSeleccionada, tutoresResultado, errorMateria
      ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -96,7 +97,12 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${requestScope.estudiantePerfil.nombre}"/></strong>
+                <c:choose>
+                    <c:when test="${not empty requestScope.estudiantePerfil and not empty requestScope.estudiantePerfil.nombre}">
+                        Hola, <strong><c:out value="${requestScope.estudiantePerfil.nombre}"/></strong>
+                    </c:when>
+                    <c:otherwise>Hola</c:otherwise>
+                </c:choose>
             </span>
             <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
                 <span class="material-symbols-outlined">notifications</span>
@@ -106,7 +112,12 @@
                 <span class="material-symbols-outlined">logout</span>
             </a>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${requestScope.estudiantePerfil.nombre.substring(0,1).toUpperCase()}"/>
+                <c:choose>
+                    <c:when test="${not empty requestScope.estudiantePerfil and not empty requestScope.estudiantePerfil.nombre}">
+                        <c:out value="${requestScope.estudiantePerfil.nombre.substring(0,1).toUpperCase()}"/>
+                    </c:when>
+                    <c:otherwise>?</c:otherwise>
+                </c:choose>
             </div>
         </div>
     </header>
@@ -123,7 +134,22 @@
                 <p class="text-lg text-on-surface-variant font-medium max-w-2xl leading-relaxed">
                     Explora nuestra red de expertos académicos listos para potenciar tu aprendizaje.
                 </p>
+                <c:if test="${not empty requestScope.estudiantePerfil.carrera}">
+                    <p class="text-sm font-semibold text-primary mt-3">
+                        Solo verás materias de tu carrera:
+                        <span class="text-on-surface"><c:out value="${requestScope.estudiantePerfil.carrera.nombre}"/></span>
+                    </p>
+                </c:if>
             </section>
+
+            <c:if test="${empty requestScope.estudiantePerfil.carrera}">
+                <div class="rounded-xl border border-amber-200 bg-amber-50 text-amber-950 px-4 py-3 text-sm font-medium max-w-2xl">
+                    <span class="material-symbols-outlined align-middle text-base mr-1">info</span>
+                    Registra tu carrera en
+                    <a href="${pageContext.request.contextPath}/perfil" class="underline font-bold text-primary">Mi perfil</a>
+                    para listar las materias de tu plan y buscar tutores.
+                </div>
+            </c:if>
 
             <c:if test="${not empty errorMateria}">
                 <div class="rounded-xl bg-red-50 border border-red-200 text-red-900 px-4 py-3 text-sm font-medium">
@@ -136,6 +162,7 @@
                 <label class="block text-sm font-semibold text-on-surface-variant uppercase tracking-widest mb-3"
                        for="selectMateriaBuscar">
                     Selecciona una materia
+                    <c:if test="${not empty requestScope.estudiantePerfil.carrera}">de tu plan</c:if>
                 </label>
                 <div class="relative flex items-center bg-surface-container-high rounded-xl overflow-hidden
                             focus-within:ring-2 focus-within:ring-primary/30 focus-within:bg-surface-container-lowest
@@ -146,7 +173,12 @@
                                    text-base appearance-none cursor-pointer"
                             onchange="var base='${pageContext.request.contextPath}/estudiante/buscar-tutor'; var v=this.value; if(v){ window.location.href=base+'?codigo='+encodeURIComponent(v);} else { window.location.href=base; }">
                         <option value="" ${empty codigoSeleccionadoParam ? 'selected="selected"' : ''}>
-                            — Elige una materia para ver tutores —
+                            <c:choose>
+                                <c:when test="${empty requestScope.estudiantePerfil.carrera}">
+                                    — Indica tu carrera en el perfil —
+                                </c:when>
+                                <c:otherwise>— Elige una materia de tu carrera —</c:otherwise>
+                            </c:choose>
                         </option>
                         <c:forEach var="mat" items="${materiasBusqueda}">
                             <option value="${mat.codigo}" ${codigoSeleccionadoParam eq mat.codigo ? 'selected="selected"' : ''}>
@@ -157,21 +189,21 @@
                     <span class="material-symbols-outlined text-on-surface-variant mr-4 shrink-0">expand_more</span>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-3 mt-5">
-                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest">Accesos rápidos:</span>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=ICCD144"
-                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Programación I</a>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=MATD113"
-                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Álgebra Lineal</a>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=ICCD523"
-                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Inteligencia Artificial</a>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=ISWD453"
-                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Fundamentos de Bases de Datos</a>
-                </div>
+                <c:if test="${not empty materiasAccesoRapido}">
+                    <div class="flex flex-wrap items-center gap-3 mt-5">
+                        <span class="text-[10px] font-bold text-primary uppercase tracking-widest">Accesos rápidos:</span>
+                        <c:forEach var="mat" items="${materiasAccesoRapido}">
+                            <c:url var="urlRapido" value="/estudiante/buscar-tutor">
+                                <c:param name="codigo" value="${mat.codigo}"/>
+                            </c:url>
+                            <a href="${urlRapido}"
+                               class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
+                                      px-4 py-1.5 rounded-full text-xs font-medium transition-colors">
+                                <c:out value="${mat.nombre}"/>
+                            </a>
+                        </c:forEach>
+                    </div>
+                </c:if>
             </section>
 
             <%-- Resultados: solo si la materia del query es válida --%>
