@@ -1,9 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%-- =============================================
      Vista: perfil-tutor-estudiante.jsp
-     Servlet: VerPerfilTutorServlet → GET /estudiante/tutor/perfil
+     Servlet: EstudiantePerfilTutorServlet → GET /estudiante/tutor/perfil?id=&materia=
      Session: usuarioLogueado (Rol.ESTUDIANTE)
+     Request: tutorVer, tutorEmail, materiasTutorOrdenadas, estudiantePerfil, materiaVolver
      ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -87,7 +89,7 @@
     <header class="w-full sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm h-16 flex justify-between items-center px-8">
         <div class="flex items-center gap-4">
             <%-- Migas de pan --%>
-            <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor"
+            <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor<c:if test="${not empty materiaVolver}">?materia=<c:out value="${materiaVolver}"/></c:if>"
                class="flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-medium">
                 <span class="material-symbols-outlined text-base">arrow_back</span>
                 <span class="hidden md:inline">Volver al buscador</span>
@@ -98,19 +100,30 @@
             </span>
         </div>
         <div class="flex items-center gap-4">
-            <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
-            </span>
-            <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
+            <c:if test="${not empty requestScope.estudiantePerfil.nombre}">
+                <span class="text-sm text-slate-600 hidden sm:block">
+                    Hola, <strong><c:out value="${requestScope.estudiantePerfil.nombre}"/></strong>
+                </span>
+            </c:if>
+            <button type="button" class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
                 <span class="material-symbols-outlined">notifications</span>
             </button>
             <a href="${pageContext.request.contextPath}/logout"
                class="p-2 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors">
                 <span class="material-symbols-outlined">logout</span>
             </a>
-            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
-            </div>
+            <c:choose>
+                <c:when test="${not empty requestScope.estudiantePerfil.nombre}">
+                    <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
+                        <c:out value="${requestScope.estudiantePerfil.nombre.substring(0,1).toUpperCase()}"/>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
+                        <c:out value="${fn:toUpperCase(fn:substring(sessionScope.usuarioLogueado.email,0,1))}"/>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </header>
 
@@ -128,32 +141,46 @@
                 </a>
             </div>
 
-            <%-- ── Tarjeta de identidad del tutor ── --%>
-            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm flex items-start gap-8">
-                <%-- Avatar con inicial --%>
+            <%-- ── Tarjeta de identidad del tutor (datos reales) ── --%>
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm flex flex-col sm:flex-row items-start gap-8">
                 <div class="relative shrink-0">
                     <div class="w-28 h-28 rounded-xl bg-primary-fixed flex items-center justify-center
                                 text-on-primary-fixed font-extrabold text-5xl shadow-sm">
-                        E
+                        <c:choose>
+                            <c:when test="${not empty requestScope.tutorVer.nombre}">
+                                <c:out value="${fn:toUpperCase(fn:substring(requestScope.tutorVer.nombre,0,1))}"/>
+                            </c:when>
+                            <c:otherwise>?</c:otherwise>
+                        </c:choose>
                     </div>
-                    <%-- Insignia de verificado --%>
                     <div class="absolute -bottom-2 -right-2 bg-secondary text-white p-1 rounded-full border-4 border-white">
                         <span class="material-symbols-outlined text-sm"
                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">verified</span>
                     </div>
                 </div>
-                <%-- Info del tutor --%>
-                <div class="flex-1 pt-1">
-                    <h2 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2">
-                        Dra. Elena Rodríguez
+                <div class="flex-1 pt-1 min-w-0">
+                    <h2 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2 break-words">
+                        <c:out value="${requestScope.tutorVer.nombre}"/>
+                        <c:if test="${not empty requestScope.tutorVer.segundoNombre}">
+                            <c:out value=" ${requestScope.tutorVer.segundoNombre}"/>
+                        </c:if>
+                        <c:if test="${not empty requestScope.tutorVer.apellido}">
+                            <c:out value=" ${requestScope.tutorVer.apellido}"/>
+                        </c:if>
+                        <c:if test="${not empty requestScope.tutorVer.segundoApellido}">
+                            <c:out value=" ${requestScope.tutorVer.segundoApellido}"/>
+                        </c:if>
                     </h2>
                     <div class="flex items-center gap-2 text-slate-600 mb-1">
-                        <span class="material-symbols-outlined text-base">mail</span>
-                        <span class="text-sm font-medium">elena.rodriguez@olwshare.edu</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-slate-500">
-                        <span class="material-symbols-outlined text-base">school</span>
-                        <span class="text-sm">6to Semestre — Ingeniería en Computación</span>
+                        <span class="material-symbols-outlined text-base shrink-0">mail</span>
+                        <span class="text-sm font-medium break-all">
+                            <c:choose>
+                                <c:when test="${not empty requestScope.tutorEmail}">
+                                    <c:out value="${requestScope.tutorEmail}"/>
+                                </c:when>
+                                <c:otherwise>No disponible</c:otherwise>
+                            </c:choose>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -164,19 +191,15 @@
                     <span class="material-symbols-outlined">menu_book</span>
                     Biografía Profesional
                 </h3>
-                <div class="space-y-4 text-on-surface-variant leading-relaxed">
-                    <p>
-                        Con más de 10 años de experiencia en el ámbito académico y consultoría financiera,
-                        mi enfoque pedagógico se centra en la aplicación práctica de conceptos complejos.
-                        Soy Doctora en Economía con especialidad en Mercados Emergentes, lo que me permite
-                        brindar una perspectiva global a mis estudiantes.
-                    </p>
-                    <p>
-                        Creo firmemente que el aprendizaje efectivo ocurre cuando el estudiante logra
-                        conectar la teoría con casos reales de la industria. Mis sesiones no son clases
-                        magistrales, sino diálogos dinámicos donde resolvemos problemas y analizamos
-                        escenarios actuales, garantizando que el conocimiento sea útil y duradero.
-                    </p>
+                <div class="text-on-surface-variant leading-relaxed whitespace-pre-wrap">
+                    <c:choose>
+                        <c:when test="${not empty requestScope.tutorVer.descripcionProfesional}">
+                            <c:out value="${requestScope.tutorVer.descripcionProfesional}"/>
+                        </c:when>
+                        <c:otherwise>
+                            <p class="italic text-on-surface-variant/80">Este tutor aún no ha añadido una biografía.</p>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </section>
 
@@ -187,16 +210,17 @@
                     Materias relacionadas
                 </h3>
                 <div class="flex flex-wrap gap-3">
-                    <span class="px-4 py-1.5 text-white text-sm font-semibold rounded-full shadow-sm"
-                          style="background-color:#81d4fa">Álgebra Lineal</span>
-                    <span class="px-4 py-1.5 text-white text-sm font-semibold rounded-full shadow-sm"
-                          style="background-color:#81d4fa">Cálculo en una Variable</span>
-                    <span class="px-4 py-1.5 text-white text-sm font-semibold rounded-full shadow-sm"
-                          style="background-color:#81d4fa">Ec. Diferenciales Ordinarias</span>
-                    <span class="px-4 py-1.5 text-white text-sm font-semibold rounded-full shadow-sm"
-                          style="background-color:#81d4fa">Probabilidad y Estadística</span>
-                    <span class="px-4 py-1.5 text-white text-sm font-semibold rounded-full shadow-sm"
-                          style="background-color:#81d4fa">Matemáticas Computacionales</span>
+                    <c:choose>
+                        <c:when test="${empty requestScope.materiasTutorOrdenadas}">
+                            <p class="text-on-surface-variant text-sm">Sin materias indicadas en el perfil.</p>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach var="mf" items="${requestScope.materiasTutorOrdenadas}">
+                                <span class="px-4 py-1.5 text-white text-sm font-semibold rounded-full shadow-sm"
+                                      style="background-color:#81d4fa"><c:out value="${mf.nombre}"/></span>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </section>
 

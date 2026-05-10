@@ -198,8 +198,9 @@
                         <c:otherwise>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <c:forEach var="t" items="${tutoresResultado}" varStatus="st">
-                                    <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm
-                                                hover:shadow-lg transition-all duration-300 flex flex-col">
+                                    <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil?id=${t.idTutor}&materia=<c:out value="${materiaSeleccionada.name()}"/>"
+                                       class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm
+                                              hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer text-left no-underline text-inherit">
                                         <c:choose>
                                             <c:when test="${st.index % 3 == 0}">
                                                 <div class="h-3 bg-primary-container"></div>
@@ -245,13 +246,14 @@
                                                     </span>
                                                 </c:forEach>
                                             </div>
-                                            <div class="mt-auto">
-                                                <span class="flex items-center justify-center gap-2 w-full py-2.5 text-on-surface-variant text-xs font-semibold">
-                                                    Perfil público próximamente
+                                            <div class="mt-auto pt-2 border-t border-outline-variant/10">
+                                                <span class="flex items-center justify-center gap-2 w-full py-2 text-primary text-sm font-bold">
+                                                    Ver perfil
+                                                    <span class="material-symbols-outlined text-lg">chevron_right</span>
                                                 </span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </a>
                                 </c:forEach>
                             </div>
                         </c:otherwise>

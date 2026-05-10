@@ -19,6 +19,7 @@ servlets\DetalleMaterialTutorServlet.class
 schemas\Material.class
 repositories\AdminRepository.class
 schemas\Usuario.class
+servlets\EstudiantePerfilTutorServlet.class
 servlets\validators\PasswordValidator.class
 servlets\EstudianteDetalleServlet.class
 servlets\PerfilServlet.class

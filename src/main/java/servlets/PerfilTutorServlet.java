@@ -32,6 +32,14 @@ public class PerfilTutorServlet extends HttpServlet {
             return;
         }
 
+        try (EntityManager emFresh = JpaUtil.createEntityManager()) {
+            Usuario desdeBd = emFresh.find(Usuario.class, usuario.getId_usuario());
+            if (desdeBd != null && desdeBd.getRol() == Rol.TUTOR) {
+                session.setAttribute("usuarioLogueado", desdeBd);
+                usuario = desdeBd;
+            }
+        }
+
         String mensaje = ServletUtils.value(req.getParameter("mensaje"));
         if (!mensaje.isEmpty()) {
             req.setAttribute("flashOk", mensaje);
@@ -55,14 +63,34 @@ public class PerfilTutorServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
-        if (session == null || !(session.getAttribute("usuarioLogueado") instanceof Usuario usuario)
-                || usuario.getRol() != Rol.TUTOR || usuario.getIdPersona() == null) {
+        if (session == null || !(session.getAttribute("usuarioLogueado") instanceof Usuario sesionUser)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        if (sesionUser.getRol() != Rol.TUTOR) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
-        String accion = ServletUtils.value(req.getParameter("accion"));
         String redirectBase = req.getContextPath() + "/tutor/perfil";
+
+        /* Sesión puede estar desactualizada respecto a la BD (p. ej. id_persona asignado después del login). */
+        Usuario usuario;
+        try (EntityManager emReload = JpaUtil.createEntityManager()) {
+            usuario = emReload.find(Usuario.class, sesionUser.getId_usuario());
+        }
+        if (usuario == null || usuario.getRol() != Rol.TUTOR) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        if (usuario.getIdPersona() == null) {
+            resp.sendRedirect(redirectBase + "?error="
+                    + url("Tu cuenta no tiene un perfil de tutor vinculado (id persona). Contacta al administrador."));
+            return;
+        }
+        session.setAttribute("usuarioLogueado", usuario);
+
+        String accion = ServletUtils.value(req.getParameter("accion"));
 
         try (EntityManager em = JpaUtil.createEntityManager()) {
             EntityTransaction tx = em.getTransaction();
