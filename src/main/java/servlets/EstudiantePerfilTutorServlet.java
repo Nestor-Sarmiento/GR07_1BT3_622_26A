@@ -1,6 +1,6 @@
 package servlets;
 
-import Enums.MateriaFIS;
+import Enums.MateriasCatalogo;
 import Enums.Rol;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
@@ -17,11 +17,12 @@ import schemas.Usuario;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * Vista de perfil de un tutor para el estudiante (solo lectura).
- * GET /estudiante/tutor/perfil?id={id_tutor}
+ * GET /estudiante/tutor/perfil?id={id_tutor}&codigo={opcional}
  */
 @WebServlet(name = "estudiantePerfilTutorServlet", urlPatterns = "/estudiante/tutor/perfil")
 public class EstudiantePerfilTutorServlet extends HttpServlet {
@@ -66,13 +67,15 @@ public class EstudiantePerfilTutorServlet extends HttpServlet {
 
             req.setAttribute("tutorVer", tutor);
             req.setAttribute("tutorEmail", emailTutor.orElse(null));
-            if (tutor.getMateriasRelacionadas() != null) {
-                var ordenadas = new ArrayList<>(tutor.getMateriasRelacionadas());
-                ordenadas.sort(Comparator.comparing(MateriaFIS::getNombre, String.CASE_INSENSITIVE_ORDER));
-                req.setAttribute("materiasTutorOrdenadas", ordenadas);
-            } else {
-                req.setAttribute("materiasTutorOrdenadas", new ArrayList<MateriaFIS>());
+
+            List<String> etiquetas = new ArrayList<>();
+            if (tutor.getCodigosMateriaRelacionadas() != null) {
+                for (String c : tutor.getCodigosMateriaRelacionadas()) {
+                    etiquetas.add(MateriasCatalogo.buscarPorCodigo(c).map(MateriasCatalogo.Opcion::getNombre).orElse(c));
+                }
+                etiquetas.sort(Comparator.comparing(String::toString, String.CASE_INSENSITIVE_ORDER));
             }
+            req.setAttribute("materiasTutorEtiquetas", etiquetas);
 
             if (estudiante.getIdPersona() != null) {
                 Estudiante estudiantePerfil = em.find(Estudiante.class, estudiante.getIdPersona());
@@ -80,7 +83,11 @@ public class EstudiantePerfilTutorServlet extends HttpServlet {
             }
         }
 
-        req.setAttribute("materiaVolver", ServletUtils.value(req.getParameter("materia")));
+        String codigoVolver = ServletUtils.value(req.getParameter("codigo"));
+        if (codigoVolver.isBlank()) {
+            codigoVolver = ServletUtils.value(req.getParameter("materia"));
+        }
+        req.setAttribute("codigoVolver", codigoVolver);
         req.getRequestDispatcher("/WEB-INF/jsp/estudiante/perfil-tutor-estudiante.jsp").forward(req, resp);
     }
 }

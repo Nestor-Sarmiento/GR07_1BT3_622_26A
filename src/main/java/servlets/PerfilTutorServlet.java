@@ -1,6 +1,7 @@
 package servlets;
 
-import Enums.MateriaFIS;
+import Enums.Carrera;
+import Enums.MateriasCatalogo;
 import Enums.Rol;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -56,7 +57,8 @@ public class PerfilTutorServlet extends HttpServlet {
             }
         }
 
-        req.setAttribute("materias", MateriaFIS.values());
+        req.setAttribute("carreras", Carrera.values());
+        req.setAttribute("materiasPorCarreraJson", MateriasCatalogo.toJsonPorCarrera());
         req.getRequestDispatcher("/WEB-INF/jsp/tutor/perfil-tutor.jsp").forward(req, resp);
     }
 
@@ -105,18 +107,39 @@ public class PerfilTutorServlet extends HttpServlet {
 
                 switch (accion) {
                     case "materias" -> {
+                        String carreraStr = ServletUtils.value(req.getParameter("carrera"));
+                        if (carreraStr.isBlank()) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error=" + url("Selecciona tu carrera."));
+                            return;
+                        }
+                        Carrera car = Carrera.valueOf(carreraStr);
                         String raw = req.getParameter("materias");
-                        Set<MateriaFIS> nuevas = new HashSet<>();
+                        Set<String> nuevas = new HashSet<>();
                         if (raw != null && !raw.isBlank()) {
                             for (String part : raw.split(",")) {
                                 String p = part.trim();
                                 if (p.isEmpty()) {
                                     continue;
                                 }
-                                nuevas.add(MateriaFIS.valueOf(p));
+                                boolean ok = false;
+                                for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarrera(car)) {
+                                    if (op.getCodigo().equalsIgnoreCase(p)) {
+                                        nuevas.add(op.getCodigo());
+                                        ok = true;
+                                        break;
+                                    }
+                                }
+                                if (!ok) {
+                                    tx.rollback();
+                                    resp.sendRedirect(redirectBase + "?error="
+                                            + url("Una o más materias no corresponden a la carrera seleccionada."));
+                                    return;
+                                }
                             }
                         }
-                        tutor.setMateriasRelacionadas(nuevas);
+                        tutor.setCarrera(car);
+                        tutor.setCodigosMateriaRelacionadas(nuevas);
                         em.merge(tutor);
                     }
                     case "bio" -> {

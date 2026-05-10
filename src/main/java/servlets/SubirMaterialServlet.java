@@ -1,9 +1,9 @@
 package servlets;
 
-import Enums.Rol;
 import Enums.CategoriaMaterial;
-import Enums.MateriaFIS;
 import Enums.EstadoMaterial;
+import Enums.MateriasCatalogo;
+import Enums.Rol;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -34,19 +34,29 @@ public class SubirMaterialServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         Usuario u = (Usuario) session.getAttribute("usuarioLogueado");
+        prepararMateriasYPerfil(req, u);
+
+        req.setAttribute("categorias", CategoriaMaterial.values());
+        req.getRequestDispatcher(VIEW).forward(req, resp);
+    }
+
+    private static void prepararMateriasYPerfil(HttpServletRequest req, Usuario u) {
         if (u != null && u.getIdPersona() != null) {
             jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
             try {
                 schemas.Tutor tutorPerfil = em.find(schemas.Tutor.class, u.getIdPersona());
                 req.setAttribute("tutorPerfil", tutorPerfil);
+                if (tutorPerfil != null && tutorPerfil.getCarrera() != null) {
+                    req.setAttribute("materiasOpciones", MateriasCatalogo.porCarrera(tutorPerfil.getCarrera()));
+                } else {
+                    req.setAttribute("materiasOpciones", MateriasCatalogo.todasOpcionesBusqueda());
+                }
             } finally {
                 em.close();
             }
+        } else {
+            req.setAttribute("materiasOpciones", MateriasCatalogo.todasOpcionesBusqueda());
         }
-
-        req.setAttribute("categorias", CategoriaMaterial.values());
-        req.setAttribute("materias", MateriaFIS.values());
-        req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
     @Override
@@ -60,11 +70,13 @@ public class SubirMaterialServlet extends HttpServlet {
         String titulo = req.getParameter("titulo");
         String descripcion = req.getParameter("descripcion");
         String categoria = req.getParameter("nombreMateria");
+        String materiaCodigo = ServletUtils.value(req.getParameter("materia"));
         String precioStr = req.getParameter("costo");
         Part archivoPart = req.getPart("archivo");
         if (titulo == null || titulo.isBlank()) {
             req.setAttribute("error", "El título es obligatorio.");
             req.setAttribute("categorias", CategoriaMaterial.values());
+            prepararMateriasYPerfil(req, (Usuario) session.getAttribute("usuarioLogueado"));
             req.getRequestDispatcher(VIEW).forward(req, resp);
             return;
         }
@@ -75,6 +87,7 @@ public class SubirMaterialServlet extends HttpServlet {
         if (!ArchivoMaterialValidator.esExtensionPermitida(extension)) {
             req.setAttribute("error", "Extensión no permitida");
             req.setAttribute("categorias", CategoriaMaterial.values());
+            prepararMateriasYPerfil(req, (Usuario) session.getAttribute("usuarioLogueado"));
             req.getRequestDispatcher(VIEW).forward(req, resp);
             return;
         }
@@ -110,12 +123,17 @@ public class SubirMaterialServlet extends HttpServlet {
             }
         }
 
+        String idMateriaVal = materiaCodigo.isBlank() ? categoria : materiaCodigo;
+        String nombreMateriaVal = MateriasCatalogo.buscarPorCodigo(materiaCodigo)
+                .map(MateriasCatalogo.Opcion::getNombre)
+                .orElse(categoria != null && !categoria.isBlank() ? categoria : materiaCodigo);
+
         Material material = Material.builder()
                 .titulo(titulo)
                 .descripcion(descripcion)
                 .nombreArchivo(nombreArchivoGuardado)
-                .idMateria(categoria)
-                .nombreMateria(categoria)
+                .idMateria(idMateriaVal)
+                .nombreMateria(nombreMateriaVal)
                 .rutaArchivo("uploads/materiales/" + nombreArchivoGuardado)
                 .tipoArchivo(extension.substring(1))
                 .costo(costo)

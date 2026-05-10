@@ -4,7 +4,7 @@
      Vista: buscar-tutor.jsp
      Servlet: BuscarTutorServlet → GET /estudiante/buscar-tutor[?materia=ENUM]
      Session: usuarioLogueado (Rol.ESTUDIANTE)
-     Atributos: materias, materiaSeleccionadaParam, materiaSeleccionada, tutoresResultado, errorMateria
+     Atributos: materiasBusqueda, codigoSeleccionadoParam, materiaSeleccionada (Opcion), tutoresResultado, errorMateria
      ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -141,16 +141,16 @@
                             focus-within:ring-2 focus-within:ring-primary/30 focus-within:bg-surface-container-lowest
                             focus-within:shadow-lg transition-all">
                     <span class="material-symbols-outlined text-on-surface-variant ml-4 shrink-0">school</span>
-                    <select id="selectMateriaBuscar" name="materia"
+                    <select id="selectMateriaBuscar" name="codigo"
                             class="w-full bg-transparent border-none focus:ring-0 py-5 px-4 text-on-surface
                                    text-base appearance-none cursor-pointer"
-                            onchange="var base='${pageContext.request.contextPath}/estudiante/buscar-tutor'; var v=this.value; if(v){ window.location.href=base+'?materia='+encodeURIComponent(v);} else { window.location.href=base; }">
-                        <option value="" ${empty materiaSeleccionadaParam ? 'selected="selected"' : ''}>
+                            onchange="var base='${pageContext.request.contextPath}/estudiante/buscar-tutor'; var v=this.value; if(v){ window.location.href=base+'?codigo='+encodeURIComponent(v);} else { window.location.href=base; }">
+                        <option value="" ${empty codigoSeleccionadoParam ? 'selected="selected"' : ''}>
                             — Elige una materia para ver tutores —
                         </option>
-                        <c:forEach var="mat" items="${materias}">
-                            <option value="${mat.name()}" ${materiaSeleccionadaParam eq mat.name() ? 'selected="selected"' : ''}>
-                                <c:out value="${mat.nombre}"/> — <c:out value="${mat.id}"/>
+                        <c:forEach var="mat" items="${materiasBusqueda}">
+                            <option value="${mat.codigo}" ${codigoSeleccionadoParam eq mat.codigo ? 'selected="selected"' : ''}>
+                                <c:out value="${mat.nombre}"/> — <c:out value="${mat.codigo}"/>
                             </option>
                         </c:forEach>
                     </select>
@@ -159,16 +159,16 @@
 
                 <div class="flex flex-wrap items-center gap-3 mt-5">
                     <span class="text-[10px] font-bold text-primary uppercase tracking-widest">Accesos rápidos:</span>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=PROGRAMACION_I"
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=ICCD144"
                        class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
                               px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Programación I</a>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=ALGEBRA_LINEAL"
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=MATD113"
                        class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
                               px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Álgebra Lineal</a>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=INTELIGENCIA_ARTIFICIAL"
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=ICCD523"
                        class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
                               px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Inteligencia Artificial</a>
-                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=FUNDAMENTOS_DE_BASES_DE_DATOS"
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?codigo=ISWD453"
                        class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
                               px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Fundamentos de Bases de Datos</a>
                 </div>
@@ -179,7 +179,7 @@
                 <section>
                     <h3 class="text-xl font-bold text-on-surface mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary">group</span>
-                        Tutores para «<c:out value="${materiaSeleccionada.nombre}"/>»
+                        Tutores para «<c:out value="${materiaSeleccionada.nombre}"/>» (<c:out value="${materiaSeleccionada.codigo}"/>)
                     </h3>
                     <p class="text-sm text-on-surface-variant mb-6">
                         Mostrando tutores que indicaron esta materia en su perfil.
@@ -198,7 +198,7 @@
                         <c:otherwise>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <c:forEach var="t" items="${tutoresResultado}" varStatus="st">
-                                    <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil?id=${t.idTutor}&materia=<c:out value="${materiaSeleccionada.name()}"/>"
+                                    <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil?id=${t.idTutor}&codigo=<c:out value="${materiaSeleccionada.codigo}"/>"
                                        class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm
                                               hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer text-left no-underline text-inherit">
                                         <c:choose>

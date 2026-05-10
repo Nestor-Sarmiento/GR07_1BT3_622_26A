@@ -1,7 +1,7 @@
 package servlets;
 
 import Enums.Estados;
-import Enums.MateriaFIS;
+import Enums.MateriasCatalogo;
 import Enums.Rol;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @WebServlet(name = "buscarTutorServlet", urlPatterns = "/estudiante/buscar-tutor")
@@ -45,33 +46,45 @@ public class BuscarTutorServlet extends HttpServlet {
             }
         }
 
-        String materiaParam = ServletUtils.value(req.getParameter("materia"));
-        req.setAttribute("materiaSeleccionadaParam", materiaParam);
+        String codigoParam = ServletUtils.value(req.getParameter("codigo"));
+        if (codigoParam.isBlank()) {
+            codigoParam = ServletUtils.value(req.getParameter("materia"));
+        }
+        req.setAttribute("codigoSeleccionadoParam", codigoParam);
 
         List<TutorListadoDTO> tutoresResultado = new ArrayList<>();
-        if (!materiaParam.isBlank()) {
-            try {
-                MateriaFIS mf = MateriaFIS.valueOf(materiaParam);
-                req.setAttribute("materiaSeleccionada", mf);
+        if (!codigoParam.isBlank()) {
+            Optional<MateriasCatalogo.Opcion> opOpt = MateriasCatalogo.buscarPorCodigo(codigoParam);
+            if (opOpt.isEmpty()) {
+                req.setAttribute("errorMateria", "La materia seleccionada no es válida.");
+            } else {
+                MateriasCatalogo.Opcion op = opOpt.get();
+                req.setAttribute("materiaSeleccionada", op);
                 try (EntityManager em = JpaUtil.createEntityManager()) {
+                    String codCanon = op.getCodigo();
+                    /*
+                     * JOIN sobre la colección es más fiable que MEMBER OF con @ElementCollection(Set<String>)
+                     * en Hibernate 6. Se excluyen solo tutores INACTIVO; el resto (ACTIVO, POR_VERIFICAR, null)
+                     * aparece en búsqueda para no ocultar cuentas por desajuste de estado en BD.
+                     */
                     List<Tutor> encontrados = em.createQuery(
-                            "SELECT DISTINCT t FROM Tutor t WHERE :m MEMBER OF t.materiasRelacionadas AND t.estado = :activo",
+                            "SELECT DISTINCT t FROM Tutor t JOIN t.codigosMateriaRelacionadas c "
+                                    + "WHERE LOWER(TRIM(c)) = LOWER(TRIM(:cod)) "
+                                    + "AND (t.estado IS NULL OR t.estado <> :inactivo)",
                             Tutor.class)
-                            .setParameter("m", mf)
-                            .setParameter("activo", Estados.ACTIVO)
+                            .setParameter("cod", codCanon)
+                            .setParameter("inactivo", Estados.INACTIVO)
                             .getResultList();
                     encontrados.sort(Comparator.comparing(Tutor::getNombre, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
                     for (Tutor t : encontrados) {
                         tutoresResultado.add(toDto(t));
                     }
                 }
-            } catch (IllegalArgumentException e) {
-                req.setAttribute("errorMateria", "La materia seleccionada no es válida.");
             }
         }
 
         req.setAttribute("tutoresResultado", tutoresResultado);
-        req.setAttribute("materias", MateriaFIS.values());
+        req.setAttribute("materiasBusqueda", MateriasCatalogo.todasOpcionesBusqueda());
         req.getRequestDispatcher("/WEB-INF/jsp/estudiante/buscar-tutor.jsp").forward(req, resp);
     }
 
@@ -87,10 +100,10 @@ public class BuscarTutorServlet extends HttpServlet {
         if (bio == null || bio.isEmpty()) {
             bio = "Tutor académico";
         }
-        List<String> tags = t.getMateriasRelacionadas() == null ? List.of()
-                : t.getMateriasRelacionadas().stream()
-                .sorted(Comparator.comparing(MateriaFIS::getNombre))
-                .map(MateriaFIS::getNombre)
+        List<String> tags = t.getCodigosMateriaRelacionadas() == null ? List.of()
+                : t.getCodigosMateriaRelacionadas().stream()
+                .map(c -> MateriasCatalogo.buscarPorCodigo(c).map(MateriasCatalogo.Opcion::getNombre).orElse(c))
+                .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(Collectors.toList());
         return TutorListadoDTO.builder()
                 .idTutor(t.getId())

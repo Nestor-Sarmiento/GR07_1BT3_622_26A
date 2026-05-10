@@ -1,6 +1,8 @@
 package schemas;
 
+import Enums.Carrera;
 import Enums.Estados;
+import Enums.Semestre;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -36,5 +38,11 @@ public class Estudiante {
 
     @Builder.Default
     private boolean mustChangePassword = false;
+
+    @Enumerated(EnumType.STRING)
+    private Semestre semestre;
+
+    @Enumerated(EnumType.STRING)
+    private Carrera carrera;
 }
 

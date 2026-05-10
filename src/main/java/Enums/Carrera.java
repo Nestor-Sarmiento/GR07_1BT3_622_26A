@@ -1,10 +1,13 @@
 package Enums;
 
+/**
+ * Carreras FIS usadas para filtrar el plan de materias (tutor y registro de estudiante).
+ */
 public enum Carrera {
-    INGENIERIA_DE_SISTEMAS("Ingeniería de Sistemas"),
-    INGENIERIA_DE_COMPUTACION("Ingeniería de Computación"),
-    INGENIERIA_EN_CIBERSEGURIDAD("Ingeniería en Ciberseguridad"),
-    INGENIERIA_EN_TIC("Ingeniería en TIC");
+    SOFTWARE("Software"),
+    COMPUTACION("Computación"),
+    CIENCIA_DATOS_IA("Ciencia de Datos e Inteligencia Artificial"),
+    SISTEMAS_INFORMACION("Sistemas de Información");
 
     private final String nombre;
 

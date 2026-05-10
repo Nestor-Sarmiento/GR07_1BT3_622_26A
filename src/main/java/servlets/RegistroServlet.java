@@ -2,7 +2,7 @@ package servlets;
 
 import Enums.Carrera;
 import Enums.Estados;
-import Enums.MateriaFIS;
+import Enums.MateriasCatalogo;
 import Enums.Rol;
 import Enums.Semestre;
 import jakarta.servlet.ServletException;
@@ -12,10 +12,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import repositories.AdminRepository;
 import repositories.UsuarioRepository;
-import schemas.Admin;
 import schemas.Usuario;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 @WebServlet(name = "registroServlet", urlPatterns = "/registro")
 public class RegistroServlet extends HttpServlet {
@@ -24,9 +25,9 @@ public class RegistroServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("materias", MateriaFIS.values());
         req.setAttribute("semestres", Semestre.values());
         req.setAttribute("carreras", Carrera.values());
+        req.setAttribute("materiasPorCarreraJson", MateriasCatalogo.toJsonPorCarrera());
         req.getRequestDispatcher("/registro.jsp").forward(req, resp);
     }
 
@@ -39,10 +40,12 @@ public class RegistroServlet extends HttpServlet {
         String apellido = ServletUtils.value(req.getParameter("apellido"));
         String segundoApellido = ServletUtils.value(req.getParameter("segundoApellido"));
         String rolStr = ServletUtils.value(req.getParameter("rol"));
+        String semestreStr = ServletUtils.value(req.getParameter("semestre"));
+        String carreraStr = ServletUtils.value(req.getParameter("carrera"));
 
-        req.setAttribute("materias", MateriaFIS.values());
         req.setAttribute("semestres", Semestre.values());
         req.setAttribute("carreras", Carrera.values());
+        req.setAttribute("materiasPorCarreraJson", MateriasCatalogo.toJsonPorCarrera());
 
         if (email.isBlank() || password.isBlank() || nombre.isBlank() || apellido.isBlank() || rolStr.isBlank()) {
             req.setAttribute("error", "Todos los campos marcados como obligatorios (*) son requeridos.");
@@ -60,6 +63,15 @@ public class RegistroServlet extends HttpServlet {
             Rol rol = Rol.valueOf(rolStr.toUpperCase());
             Long idPersona = null;
 
+            Semestre semestre = null;
+            if (!semestreStr.isBlank()) {
+                semestre = Semestre.valueOf(semestreStr);
+            }
+            Carrera carreraRegistro = null;
+            if (!carreraStr.isBlank()) {
+                carreraRegistro = Carrera.valueOf(carreraStr);
+            }
+
             if (rol == Rol.ESTUDIANTE) {
                 schemas.Estudiante est = schemas.Estudiante.builder()
                         .nombre(nombre)
@@ -67,19 +79,40 @@ public class RegistroServlet extends HttpServlet {
                         .apellido(apellido)
                         .segundoApellido(segundoApellido)
                         .estado(Estados.ACTIVO)
+                        .semestre(semestre)
+                        .carrera(carreraRegistro)
                         .build();
                 savePersona(est);
                 idPersona = est.getId();
             } else if (rol == Rol.TUTOR) {
+                if (carreraRegistro == null) {
+                    req.setAttribute("error", "Debes seleccionar tu carrera para registrar materias como tutor.");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
                 String[] materiasParam = req.getParameterValues("materias");
-                java.util.Set<MateriaFIS> materiasSet = new java.util.HashSet<>();
+                Set<String> codigos = new HashSet<>();
                 if (materiasParam != null) {
                     for (String m : materiasParam) {
-                        try { materiasSet.add(MateriaFIS.valueOf(m)); }
-                        catch (IllegalArgumentException ignored) {}
+                        if (m == null || m.isBlank()) {
+                            continue;
+                        }
+                        boolean ok = false;
+                        for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarrera(carreraRegistro)) {
+                            if (op.getCodigo().equalsIgnoreCase(m.trim())) {
+                                codigos.add(op.getCodigo());
+                                ok = true;
+                                break;
+                            }
+                        }
+                        if (!ok) {
+                            req.setAttribute("error", "Una o más materias no corresponden a la carrera seleccionada.");
+                            req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                            return;
+                        }
                     }
                 }
-                if (materiasSet.isEmpty()) {
+                if (codigos.isEmpty()) {
                     req.setAttribute("error", "Debes seleccionar al menos una materia relacionada.");
                     req.getRequestDispatcher("/registro.jsp").forward(req, resp);
                     return;
@@ -90,7 +123,8 @@ public class RegistroServlet extends HttpServlet {
                         .apellido(apellido)
                         .segundoApellido(segundoApellido)
                         .estado(Estados.ACTIVO)
-                        .materiasRelacionadas(materiasSet)
+                        .carrera(carreraRegistro)
+                        .codigosMateriaRelacionadas(codigos)
                         .build();
                 savePersona(tutor);
                 idPersona = tutor.getId();
@@ -107,7 +141,7 @@ public class RegistroServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login?mensaje=Registro+exitoso.+Ya+puedes+iniciar+sesion.");
 
         } catch (IllegalArgumentException e) {
-            req.setAttribute("error", "Rol no válido seleccionado.");
+            req.setAttribute("error", "Rol, carrera o semestre no válido.");
             req.getRequestDispatcher("/registro.jsp").forward(req, resp);
         } catch (Exception e) {
             req.setAttribute("error", "Error al procesar el registro: " + e.getMessage());
@@ -123,7 +157,9 @@ public class RegistroServlet extends HttpServlet {
             em.persist(persona);
             tx.commit();
         } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
+            if (tx.isActive()) {
+                tx.rollback();
+            }
             throw e;
         } finally {
             em.close();

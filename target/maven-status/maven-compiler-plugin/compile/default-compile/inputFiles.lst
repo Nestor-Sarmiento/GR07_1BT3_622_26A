@@ -1,9 +1,15 @@
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\Carrera.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\CategoriaMaterial.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\EstadoMaterial.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\Estados.java
-D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\MateriaFIS.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\MateriaCienciaDatosIA.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\MateriaComputacion.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\MateriasCatalogo.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\MateriaSistemasInformacion.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\MateriaSoftware.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\Rol.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\RolAttributeConverter.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\Enums\Semestre.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\pdciae_back\PdciaeBackApplication.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\repositories\AdminRepository.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\repositories\JpaUtil.java
@@ -43,4 +49,5 @@ D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\UsuarioServl
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\validators\ArchivoMaterialValidator.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\validators\PasswordValidator.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\servlets\VisualizarMaterialServlet.java
+D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\tools\MigrateTutorMateriasFisToCodigo.java
 D:\Software\Projects\EPN_6\GR07_1BT3_622_26A\src\main\java\web\AppContextListener.java

@@ -5,7 +5,7 @@
      Vista: perfil-tutor-estudiante.jsp
      Servlet: EstudiantePerfilTutorServlet → GET /estudiante/tutor/perfil?id=&materia=
      Session: usuarioLogueado (Rol.ESTUDIANTE)
-     Request: tutorVer, tutorEmail, materiasTutorOrdenadas, estudiantePerfil, materiaVolver
+     Request: tutorVer, tutorEmail, materiasTutorEtiquetas, estudiantePerfil, codigoVolver
      ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -89,7 +89,7 @@
     <header class="w-full sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm h-16 flex justify-between items-center px-8">
         <div class="flex items-center gap-4">
             <%-- Migas de pan --%>
-            <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor<c:if test="${not empty materiaVolver}">?materia=<c:out value="${materiaVolver}"/></c:if>"
+            <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor<c:if test="${not empty codigoVolver}">?codigo=<c:out value="${codigoVolver}"/></c:if>"
                class="flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-medium">
                 <span class="material-symbols-outlined text-base">arrow_back</span>
                 <span class="hidden md:inline">Volver al buscador</span>
@@ -182,6 +182,12 @@
                             </c:choose>
                         </span>
                     </div>
+                    <c:if test="${not empty requestScope.tutorVer.carrera}">
+                        <div class="flex items-center gap-2 text-slate-500 mt-2">
+                            <span class="material-symbols-outlined text-base shrink-0">school</span>
+                            <span class="text-sm"><c:out value="${requestScope.tutorVer.carrera.nombre}"/></span>
+                        </div>
+                    </c:if>
                 </div>
             </div>
 
@@ -211,13 +217,13 @@
                 </h3>
                 <div class="flex flex-wrap gap-3">
                     <c:choose>
-                        <c:when test="${empty requestScope.materiasTutorOrdenadas}">
+                        <c:when test="${empty requestScope.materiasTutorEtiquetas}">
                             <p class="text-on-surface-variant text-sm">Sin materias indicadas en el perfil.</p>
                         </c:when>
                         <c:otherwise>
-                            <c:forEach var="mf" items="${requestScope.materiasTutorOrdenadas}">
+                            <c:forEach var="nom" items="${requestScope.materiasTutorEtiquetas}">
                                 <span class="px-4 py-1.5 text-white text-sm font-semibold rounded-full shadow-sm"
-                                      style="background-color:#81d4fa"><c:out value="${mf.nombre}"/></span>
+                                      style="background-color:#81d4fa"><c:out value="${nom}"/></span>
                             </c:forEach>
                         </c:otherwise>
                     </c:choose>
