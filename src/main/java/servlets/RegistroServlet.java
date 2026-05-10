@@ -48,16 +48,35 @@ public class RegistroServlet extends HttpServlet {
 
         try {
             Rol rol = Rol.valueOf(rolStr.toUpperCase());
+            Long idPersona = null;
+
+            if (rol == Rol.ESTUDIANTE) {
+                schemas.Estudiante est = schemas.Estudiante.builder()
+                        .nombre(nombre)
+                        .segundoNombre(segundoNombre)
+                        .apellido(apellido)
+                        .segundoApellido(segundoApellido)
+                        .estado(Estados.ACTIVO)
+                        .build();
+                savePersona(est);
+                idPersona = est.getId();
+            } else if (rol == Rol.TUTOR) {
+                schemas.Tutor tutor = schemas.Tutor.builder()
+                        .nombre(nombre)
+                        .segundoNombre(segundoNombre)
+                        .apellido(apellido)
+                        .segundoApellido(segundoApellido)
+                        .estado(Estados.ACTIVO)
+                        .build();
+                savePersona(tutor);
+                idPersona = tutor.getId();
+            }
 
             Usuario nuevoUsuario = Usuario.builder()
                     .email(email)
                     .password(password)
-                    .nombre(nombre)
-                    .segundoNombre(segundoNombre)
-                    .apellido(apellido)
-                    .segundoApellido(segundoApellido)
                     .rol(rol)
-                    .estado(Estados.ACTIVO)
+                    .idPersona(idPersona)
                     .build();
 
             usuarioRepository.save(nuevoUsuario);
@@ -69,6 +88,21 @@ public class RegistroServlet extends HttpServlet {
         } catch (Exception e) {
             req.setAttribute("error", "Error al procesar el registro: " + e.getMessage());
             req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+        }
+    }
+
+    private void savePersona(Object persona) {
+        jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+        jakarta.persistence.EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(persona);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        } finally {
+            em.close();
         }
     }
 }

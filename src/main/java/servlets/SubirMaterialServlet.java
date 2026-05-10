@@ -31,6 +31,19 @@ public class SubirMaterialServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!esTutor(req, resp)) return;
+
+        HttpSession session = req.getSession(false);
+        Usuario u = (Usuario) session.getAttribute("usuarioLogueado");
+        if (u != null && u.getIdPersona() != null) {
+            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            try {
+                schemas.Tutor tutorPerfil = em.find(schemas.Tutor.class, u.getIdPersona());
+                req.setAttribute("tutorPerfil", tutorPerfil);
+            } finally {
+                em.close();
+            }
+        }
+
         req.setAttribute("categorias", CategoriaMaterial.values());
         req.setAttribute("materias", MateriaFIS.values());
         req.getRequestDispatcher(VIEW).forward(req, resp);
@@ -83,6 +96,19 @@ public class SubirMaterialServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {}
         }
         Usuario u = (Usuario) session.getAttribute("usuarioLogueado");
+        String nombreUsuario = "Tutor";
+
+        if (u.getIdPersona() != null) {
+            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            try {
+                schemas.Tutor tutor = em.find(schemas.Tutor.class, u.getIdPersona());
+                if (tutor != null && tutor.getNombre() != null) {
+                    nombreUsuario = tutor.getNombre();
+                }
+            } finally {
+                em.close();
+            }
+        }
 
         Material material = Material.builder()
                 .titulo(titulo)
@@ -95,7 +121,7 @@ public class SubirMaterialServlet extends HttpServlet {
                 .costo(costo)
                 .estado(EstadoMaterial.PENDIENTE)
                 .fechaEnvio(java.time.LocalDateTime.now())
-                .usuario(u.getNombre())
+                .usuario(nombreUsuario)
                 .build();
 
         new MaterialRepository().save(material);

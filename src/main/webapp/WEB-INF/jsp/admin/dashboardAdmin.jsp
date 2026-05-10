@@ -94,7 +94,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.adminLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.adminPerfil.nombre}"/></strong>
             </span>
             <a href="${pageContext.request.contextPath}/perfil"
                class="p-2 text-slate-600 hover:bg-indigo-50 rounded-full transition-colors">
@@ -104,9 +104,11 @@
                class="p-2 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors">
                 <span class="material-symbols-outlined">logout</span>
             </a>
-            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.adminLogueado.nombre.substring(0,1).toUpperCase()}"/>
-            </div>
+            <a href="${pageContext.request.contextPath}/perfil"
+               class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm hover:ring-2 hover:ring-indigo-400 transition-all"
+               title="Mi Perfil">
+                <c:out value="${requestScope.adminPerfil.nombre.substring(0,1).toUpperCase()}"/>
+            </a>
         </div>
     </header>
 

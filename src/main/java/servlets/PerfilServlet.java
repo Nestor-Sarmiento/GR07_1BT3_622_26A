@@ -7,10 +7,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import repositories.AdminRepository;
+import schemas.Usuario;
 import schemas.Admin;
-import servlets.validators.PasswordValidator;
+import repositories.JpaUtil;
+import jakarta.persistence.EntityManager;
 
 import java.io.IOException;
+
+import servlets.validators.PasswordValidator;
 
 @WebServlet(name = "perfilServlet", urlPatterns = "/perfil")
 public class PerfilServlet extends HttpServlet {
@@ -18,20 +22,50 @@ public class PerfilServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Admin admin = obtenerAdminAutenticado(req, resp);
-        if (admin == null) {
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
-        req.setAttribute("admin", admin);
-        req.getRequestDispatcher("/WEB-INF/jsp/admin/perfil.jsp").forward(req, resp);
+        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
+        Usuario adminLogueado = (Usuario) session.getAttribute("adminLogueado");
+
+        if (adminLogueado != null) {
+            if (adminLogueado.getIdPersona() != null) {
+                try (EntityManager em = JpaUtil.createEntityManager()) {
+                    Admin adminPerfil = em.find(Admin.class, adminLogueado.getIdPersona());
+                    req.setAttribute("admin", adminPerfil);
+                }
+            }
+            req.getRequestDispatcher("/WEB-INF/jsp/admin/perfil.jsp").forward(req, resp);
+        } else if (usuarioLogueado != null && usuarioLogueado.getRol() == Enums.Rol.ESTUDIANTE) {
+            if (usuarioLogueado.getIdPersona() != null) {
+                try (EntityManager em = JpaUtil.createEntityManager()) {
+                    schemas.Estudiante estudiantePerfil = em.find(schemas.Estudiante.class, usuarioLogueado.getIdPersona());
+                    req.setAttribute("estudiantePerfil", estudiantePerfil);
+                }
+            }
+            req.getRequestDispatcher("/WEB-INF/jsp/estudiante/perfil-estudiante.jsp").forward(req, resp);
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/login");
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Admin admin = obtenerAdminAutenticado(req, resp);
-        if (admin == null) {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("adminLogueado") == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
+        }
+
+        Usuario adminUser = (Usuario) session.getAttribute("adminLogueado");
+        Admin admin = null;
+        if (adminUser.getIdPersona() != null) {
+            try (EntityManager em = JpaUtil.createEntityManager()) {
+                admin = em.find(Admin.class, adminUser.getIdPersona());
+            }
         }
 
         String action = req.getParameter("action");
@@ -44,15 +78,6 @@ public class PerfilServlet extends HttpServlet {
 
         req.setAttribute("admin", admin);
         req.getRequestDispatcher("/WEB-INF/jsp/admin/perfil.jsp").forward(req, resp);
-    }
-
-    private Admin obtenerAdminAutenticado(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("adminLogueado") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return null;
-        }
-        return (Admin) session.getAttribute("adminLogueado");
     }
 
     private void procesarActualizacionDatos(HttpServletRequest req, Admin admin) {
@@ -71,7 +96,15 @@ public class PerfilServlet extends HttpServlet {
         admin.setApellido(primerApellido.trim());
         admin.setSegundoApellido(segundoApellido != null ? segundoApellido.trim() : null);
 
-        guardarAdminEnSesion(req, admin);
+        // Guardar cambios en la tabla de administradores
+        adminRepository.save(admin);
+
+        // Si el admin logueado es el mismo que se está editando, actualizar sesión
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            session.setAttribute("adminLogueado_info", admin);
+        }
+
         req.setAttribute("mensaje", "Datos personales actualizados correctamente.");
     }
 
@@ -80,16 +113,22 @@ public class PerfilServlet extends HttpServlet {
         String passwordNuevo = req.getParameter("passwordNuevo");
         String passwordConfirm = req.getParameter("passwordConfirm");
 
+        HttpSession session = req.getSession(false);
+        Usuario userSession = (Usuario) session.getAttribute("adminLogueado");
+
         PasswordValidator validator = new PasswordValidator();
-        String error = validator.validate(passwordActual, passwordNuevo, passwordConfirm, admin.getPassword());
+        String error = validator.validate(passwordActual, passwordNuevo, passwordConfirm, userSession.getPassword());
 
         if (error != null) {
             req.setAttribute("error", error);
             return;
         }
 
-        admin.setPassword(passwordNuevo);
-        guardarAdminEnSesion(req, admin);
+        userSession.setPassword(passwordNuevo);
+        repositories.UsuarioRepository userRepo = new repositories.UsuarioRepository();
+        userRepo.save(userSession);
+
+        session.setAttribute("adminLogueado", userSession);
         req.setAttribute("mensaje", "Contraseña actualizada correctamente.");
     }
 
@@ -98,7 +137,7 @@ public class PerfilServlet extends HttpServlet {
         adminRepository.save(admin);
         HttpSession session = req.getSession(false);
         if (session != null) {
-            session.setAttribute("adminLogueado", admin);
+            session.setAttribute("adminLogueado_info", admin);
         }
     }
 

@@ -96,14 +96,14 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.tutorPerfil.nombre}"/></strong>
             </span>
             <a href="${pageContext.request.contextPath}/logout"
                class="p-2 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors">
                 <span class="material-symbols-outlined">logout</span>
             </a>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                <c:out value="${requestScope.tutorPerfil.nombre.substring(0,1).toUpperCase()}"/>
             </div>
         </div>
     </header>
@@ -149,9 +149,9 @@
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block">Identidad del Creador</span>
                         <span class="text-on-surface font-semibold">
-                            Autor: <c:out value="${sessionScope.usuarioLogueado.nombre}"/>
-                            <c:if test="${not empty sessionScope.usuarioLogueado.apellido}">
-                                <c:out value=" ${sessionScope.usuarioLogueado.apellido}"/>
+                            Autor: <c:out value="${requestScope.tutorPerfil.nombre}"/>
+                            <c:if test="${not empty requestScope.tutorPerfil.apellido}">
+                                <c:out value=" ${requestScope.tutorPerfil.apellido}"/>
                             </c:if>
                         </span>
                     </div>

@@ -2,9 +2,9 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%-- =============================================
      Vista: buscar-tutor.jsp
-     Servlet: BuscarTutorServlet → GET /estudiante/buscar-tutor
+     Servlet: BuscarTutorServlet → GET /estudiante/buscar-tutor[?materia=ENUM]
      Session: usuarioLogueado (Rol.ESTUDIANTE)
-     Atributos: materias (MateriaFIS[])
+     Atributos: materias, materiaSeleccionadaParam, materiaSeleccionada, tutoresResultado, errorMateria
      ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -96,7 +96,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.estudiantePerfil.nombre}"/></strong>
             </span>
             <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
                 <span class="material-symbols-outlined">notifications</span>
@@ -106,7 +106,7 @@
                 <span class="material-symbols-outlined">logout</span>
             </a>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                <c:out value="${requestScope.estudiantePerfil.nombre.substring(0,1).toUpperCase()}"/>
             </div>
         </div>
     </header>
@@ -125,173 +125,139 @@
                 </p>
             </section>
 
+            <c:if test="${not empty errorMateria}">
+                <div class="rounded-xl bg-red-50 border border-red-200 text-red-900 px-4 py-3 text-sm font-medium">
+                    <c:out value="${errorMateria}"/>
+                </div>
+            </c:if>
+
             <%-- Selector de materia --%>
             <section class="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
-                <label class="block text-sm font-semibold text-on-surface-variant uppercase tracking-widest mb-3">
+                <label class="block text-sm font-semibold text-on-surface-variant uppercase tracking-widest mb-3"
+                       for="selectMateriaBuscar">
                     Selecciona una materia
                 </label>
                 <div class="relative flex items-center bg-surface-container-high rounded-xl overflow-hidden
                             focus-within:ring-2 focus-within:ring-primary/30 focus-within:bg-surface-container-lowest
                             focus-within:shadow-lg transition-all">
                     <span class="material-symbols-outlined text-on-surface-variant ml-4 shrink-0">school</span>
-                    <select name="materia"
+                    <select id="selectMateriaBuscar" name="materia"
                             class="w-full bg-transparent border-none focus:ring-0 py-5 px-4 text-on-surface
-                                   text-base appearance-none cursor-pointer">
-                        <option disabled selected value="">Seleccionar materia (ej. Programación I, Álgebra Lineal...)</option>
-                        <c:forEach var="materia" items="${materias}">
-                            <option value="${materia.name()}">
-                                <c:out value="${materia.nombre}"/> — <c:out value="${materia.id}"/>
+                                   text-base appearance-none cursor-pointer"
+                            onchange="var base='${pageContext.request.contextPath}/estudiante/buscar-tutor'; var v=this.value; if(v){ window.location.href=base+'?materia='+encodeURIComponent(v);} else { window.location.href=base; }">
+                        <option value="" ${empty materiaSeleccionadaParam ? 'selected="selected"' : ''}>
+                            — Elige una materia para ver tutores —
+                        </option>
+                        <c:forEach var="mat" items="${materias}">
+                            <option value="${mat.name()}" ${materiaSeleccionadaParam eq mat.name() ? 'selected="selected"' : ''}>
+                                <c:out value="${mat.nombre}"/> — <c:out value="${mat.id}"/>
                             </option>
                         </c:forEach>
                     </select>
                     <span class="material-symbols-outlined text-on-surface-variant mr-4 shrink-0">expand_more</span>
                 </div>
 
-                <%-- Sugerencias (materias reales de MateriaFIS) --%>
                 <div class="flex flex-wrap items-center gap-3 mt-5">
-                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest">SUGERENCIAS:</span>
-                    <button type="button"
-                            class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                                   px-4 py-1.5 rounded-full text-xs font-medium transition-colors">
-                        Programación I
-                    </button>
-                    <button type="button"
-                            class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                                   px-4 py-1.5 rounded-full text-xs font-medium transition-colors">
-                        Álgebra Lineal
-                    </button>
-                    <button type="button"
-                            class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                                   px-4 py-1.5 rounded-full text-xs font-medium transition-colors">
-                        Inteligencia Artificial
-                    </button>
-                    <button type="button"
-                            class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
-                                   px-4 py-1.5 rounded-full text-xs font-medium transition-colors">
-                        Fundamentos de Bases de Datos
-                    </button>
+                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest">Accesos rápidos:</span>
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=PROGRAMACION_I"
+                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
+                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Programación I</a>
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=ALGEBRA_LINEAL"
+                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
+                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Álgebra Lineal</a>
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=INTELIGENCIA_ARTIFICIAL"
+                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
+                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Inteligencia Artificial</a>
+                    <a href="${pageContext.request.contextPath}/estudiante/buscar-tutor?materia=FUNDAMENTOS_DE_BASES_DE_DATOS"
+                       class="bg-surface-container-high hover:bg-primary-fixed/40 text-on-surface
+                              px-4 py-1.5 rounded-full text-xs font-medium transition-colors">Fundamentos de Bases de Datos</a>
                 </div>
             </section>
 
-            <%-- Sección de resultados (visual, sin datos reales aún) --%>
-            <section>
-                <h3 class="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">group</span>
-                    Tutores disponibles
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <%-- Resultados: solo si la materia del query es válida --%>
+            <c:if test="${not empty materiaSeleccionada}">
+                <section>
+                    <h3 class="text-xl font-bold text-on-surface mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">group</span>
+                        Tutores para «<c:out value="${materiaSeleccionada.nombre}"/>»
+                    </h3>
+                    <p class="text-sm text-on-surface-variant mb-6">
+                        Mostrando tutores que indicaron esta materia en su perfil.
+                    </p>
 
-                    <%-- Tarjeta visual 1 --%>
-                    <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm
-                                hover:shadow-lg transition-all duration-300 flex flex-col">
-                        <div class="h-3 bg-primary-container"></div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center
-                                            text-on-primary-fixed font-bold text-2xl shrink-0">
-                                    E
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-on-surface text-base">Dra. Elena Martínez</h4>
-                                    <p class="text-xs text-on-surface-variant">Doctora en Ciencias Exactas</p>
-                                </div>
+                    <c:choose>
+                        <c:when test="${empty tutoresResultado}">
+                            <div class="rounded-xl border border-outline-variant/30 bg-surface-container-low px-6 py-10 text-center">
+                                <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">person_search</span>
+                                <p class="text-on-surface-variant font-medium">
+                                    No hay tutores registrados con esta materia todavía.
+                                </p>
+                                <p class="text-xs text-on-surface-variant mt-2">Prueba con otra materia o vuelve más tarde.</p>
                             </div>
-                            <div class="flex flex-wrap gap-2 mb-5">
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Álgebra Lineal
-                                </span>
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Cálculo en una Variable
-                                </span>
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Ec. Diferenciales
-                                </span>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <c:forEach var="t" items="${tutoresResultado}" varStatus="st">
+                                    <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm
+                                                hover:shadow-lg transition-all duration-300 flex flex-col">
+                                        <c:choose>
+                                            <c:when test="${st.index % 3 == 0}">
+                                                <div class="h-3 bg-primary-container"></div>
+                                            </c:when>
+                                            <c:when test="${st.index % 3 == 1}">
+                                                <div class="h-3 bg-secondary-container"></div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="h-3" style="background-color:#dee0ff"></div>
+                                            </c:otherwise>
+                                        </c:choose>
+                                        <div class="p-6 flex flex-col flex-grow">
+                                            <div class="flex items-center gap-4 mb-4">
+                                                <c:choose>
+                                                    <c:when test="${st.index % 3 == 0}">
+                                                        <div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center
+                                                                    text-on-primary-fixed font-bold text-2xl shrink-0">
+                                                            <c:out value="${t.inicial}"/>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:when test="${st.index % 3 == 1}">
+                                                        <div class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center
+                                                                    text-on-secondary-container font-bold text-2xl shrink-0">
+                                                            <c:out value="${t.inicial}"/>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <div class="w-14 h-14 rounded-full flex items-center justify-center font-bold text-2xl shrink-0"
+                                                             style="background-color:#dee0ff; color:#00105c">
+                                                            <c:out value="${t.inicial}"/>
+                                                        </div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <div>
+                                                    <h4 class="font-bold text-on-surface text-base"><c:out value="${t.nombreMostrar}"/></h4>
+                                                    <p class="text-xs text-on-surface-variant line-clamp-2"><c:out value="${t.bioCorta}"/></p>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-wrap gap-2 mb-5">
+                                                <c:forEach var="tag" items="${t.materiasEtiquetas}">
+                                                    <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                                        <c:out value="${tag}"/>
+                                                    </span>
+                                                </c:forEach>
+                                            </div>
+                                            <div class="mt-auto">
+                                                <span class="flex items-center justify-center gap-2 w-full py-2.5 text-on-surface-variant text-xs font-semibold">
+                                                    Perfil público próximamente
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:forEach>
                             </div>
-                            <div class="mt-auto">
-                                <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil"
-                                   class="flex items-center justify-center gap-2 w-full py-2.5
-                                          bg-primary/5 hover:bg-primary hover:text-on-primary text-primary
-                                          rounded-lg text-sm font-bold transition-all duration-300">
-                                    Ver Perfil
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <%-- Tarjeta visual 2 --%>
-                    <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm
-                                hover:shadow-lg transition-all duration-300 flex flex-col">
-                        <div class="h-3 bg-secondary-container"></div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center
-                                            text-on-secondary-container font-bold text-2xl shrink-0">
-                                    C
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-on-surface text-base">Carlos Ruiz</h4>
-                                    <p class="text-xs text-on-surface-variant">Ingeniero en Computación</p>
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap gap-2 mb-5">
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Programación I
-                                </span>
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Programación II
-                                </span>
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Inteligencia Artificial
-                                </span>
-                            </div>
-                            <div class="mt-auto">
-                                <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil"
-                                   class="flex items-center justify-center gap-2 w-full py-2.5
-                                          bg-primary/5 hover:bg-primary hover:text-on-primary text-primary
-                                          rounded-lg text-sm font-bold transition-all duration-300">
-                                    Ver Perfil
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <%-- Tarjeta visual 3 --%>
-                    <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm
-                                hover:shadow-lg transition-all duration-300 flex flex-col">
-                        <div class="h-3" style="background-color:#dee0ff"></div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-full flex items-center justify-center
-                                            font-bold text-2xl shrink-0"
-                                     style="background-color:#dee0ff; color:#00105c">
-                                    S
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-on-surface text-base">Sofía Valladares</h4>
-                                    <p class="text-xs text-on-surface-variant">Magister en Lingüística</p>
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap gap-2 mb-5">
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Comunicación Oral y Escrita
-                                </span>
-                                <span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                                    Liderazgo y Comunicación
-                                </span>
-                            </div>
-                            <div class="mt-auto">
-                                <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil"
-                                   class="flex items-center justify-center gap-2 w-full py-2.5
-                                          bg-primary/5 hover:bg-primary hover:text-on-primary text-primary
-                                          rounded-lg text-sm font-bold transition-all duration-300">
-                                    Ver Perfil
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
+                        </c:otherwise>
+                    </c:choose>
+                </section>
+            </c:if>
 
         </div>
     </div>

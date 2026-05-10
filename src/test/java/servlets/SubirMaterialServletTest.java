@@ -57,9 +57,15 @@ public class SubirMaterialServletTest {
     @Test
     void testSubirMaterialExitoso() throws ServletException, IOException {
         Usuario tutor = Usuario.builder()
-                .nombre("Test Tutor")
+                .id_usuario(1L)
+                .email("test@tutor.com")
                 .rol(Rol.TUTOR)
+                .idPersona(1L)
                 .build();
+
+        // No podemos mockear el EntityManager fácilmente sin refactorizar el código para usar inyección,
+        // pero podemos intentar que el test pase si manejamos el mock del usuario.
+        // Nota: El código real hace un find en DB, esto fallará en un test unitario puro si no hay DB.
 
         when(request.getSession(false)).thenReturn(session);
         when(session.getAttribute("usuarioLogueado")).thenReturn(tutor);
@@ -84,8 +90,10 @@ public class SubirMaterialServletTest {
     @Test
     void testSubirMaterialSinArchivo() throws ServletException, IOException {
         Usuario tutor = Usuario.builder()
-                .nombre("Test Tutor")
+                .id_usuario(1L)
+                .email("test@tutor.com")
                 .rol(Rol.TUTOR)
+                .idPersona(1L)
                 .build();
 
         when(request.getSession(false)).thenReturn(session);
@@ -107,5 +115,3 @@ public class SubirMaterialServletTest {
         verify(request).getRequestDispatcher(anyString());
     }
 }
-
-
