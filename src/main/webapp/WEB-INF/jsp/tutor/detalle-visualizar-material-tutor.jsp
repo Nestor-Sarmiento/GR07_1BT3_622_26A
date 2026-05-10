@@ -101,7 +101,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.tutorPerfil.nombre}"/></strong>
             </span>
             <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors relative">
                 <span class="material-symbols-outlined">notifications</span>
@@ -115,7 +115,7 @@
                 <span class="material-symbols-outlined">logout</span>
             </a>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                <c:out value="${requestScope.tutorPerfil.nombre.substring(0,1).toUpperCase()}"/>
             </div>
         </div>
     </header>
@@ -249,16 +249,16 @@
                         <h4 class="text-xs font-bold text-outline/60 uppercase tracking-widest mb-6">Autor del Material</h4>
                         <div class="flex items-center gap-4">
                             <div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-xl flex-shrink-0" style="font-family:'Manrope',sans-serif">
-                                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                                <c:out value="${requestScope.tutorPerfil.nombre.substring(0,1).toUpperCase()}"/>
                             </div>
                             <div>
                                 <p class="font-bold text-on-surface" style="font-family:'Manrope',sans-serif">
-                                    <c:out value="${sessionScope.usuarioLogueado.nombre}"/>
-                                    <c:if test="${not empty sessionScope.usuarioLogueado.apellido}">
-                                        <c:out value=" ${sessionScope.usuarioLogueado.apellido}"/>
+                                    <c:out value="${requestScope.tutorPerfil.nombre}"/>
+                                    <c:if test="${not empty requestScope.tutorPerfil.apellido}">
+                                        <c:out value=" ${requestScope.tutorPerfil.apellido}"/>
                                     </c:if>
                                 </p>
-                                <p class="text-sm text-on-surface-variant">Tutor · OlwShare</p>
+                                <p class="text-sm text-on-surface-variant">Tutor  OlwShare</p>
                             </div>
                         </div>
                         <div class="mt-6 pt-6 border-t border-surface-container space-y-3">

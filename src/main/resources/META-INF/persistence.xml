@@ -8,6 +8,8 @@
 
         <class>schemas.Usuario</class>
         <class>schemas.Admin</class>
+        <class>schemas.Estudiante</class>
+        <class>schemas.Tutor</class>
         <class>schemas.Material</class>
 
         <properties>

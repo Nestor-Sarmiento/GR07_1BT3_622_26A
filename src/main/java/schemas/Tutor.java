@@ -1,0 +1,61 @@
+package schemas;
+
+import Enums.Estados;
+import Enums.MateriaFIS;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Entity
+@Table(name = "tutores")
+public class Tutor {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_tutor")
+    private Long id;
+
+    private String nombre;
+    private String segundoNombre;
+    private String apellido;
+    private String segundoApellido;
+
+    @Enumerated(EnumType.STRING)
+    private Estados estado;
+
+    @Builder.Default
+    private boolean mustChangePassword = false;
+
+    @Column(length = 4000)
+    private String descripcionProfesional;
+
+    /**
+     * Materias FIS que el tutor declara; persistido en tabla {@code tutor_materias_fis}.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "tutor_materias_fis", joinColumns = @JoinColumn(name = "id_tutor"))
+    @Column(name = "materia", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Set<MateriaFIS> materiasRelacionadas = new HashSet<>();
+}
+

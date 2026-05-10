@@ -50,17 +50,40 @@ public class AdminRepository {
                         .getResultList();
 
                 if (existing.isEmpty()) {
-                    Admin admin = new Admin(null, email, nombre, apellido, password, Estados.ACTIVO);
-                    admin.setMustChangePassword(false);
+                    Admin admin = Admin.builder()
+                            .nombre(nombre)
+                            .apellido(apellido)
+                            .estado(Estados.ACTIVO)
+                            .build();
                     em.persist(admin);
+
+                    Usuario usuario = Usuario.builder()
+                            .email(email)
+                            .password(password)
+                            .rol(Rol.ADMIN)
+                            .idPersona(admin.getId())
+                            .build();
+                    em.persist(usuario);
                 } else {
                     Usuario usuario = existing.get(0);
                     usuario.setRol(Rol.ADMIN);
                     usuario.setPassword(password);
-                    usuario.setNombre(nombre);
-                    usuario.setApellido(apellido);
-                    usuario.setEstado(Estados.ACTIVO);
-                    usuario.setMustChangePassword(false);
+                    
+                    Admin admin = em.find(Admin.class, usuario.getIdPersona());
+                    if (admin == null) {
+                        admin = Admin.builder()
+                                .nombre(nombre)
+                                .apellido(apellido)
+                                .estado(Estados.ACTIVO)
+                                .build();
+                        em.persist(admin);
+                        usuario.setIdPersona(admin.getId());
+                    } else {
+                        admin.setNombre(nombre);
+                        admin.setApellido(apellido);
+                        admin.setEstado(Estados.ACTIVO);
+                        em.merge(admin);
+                    }
                     em.merge(usuario);
                 }
 

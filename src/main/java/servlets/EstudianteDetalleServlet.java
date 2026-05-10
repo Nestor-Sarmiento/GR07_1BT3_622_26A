@@ -55,8 +55,18 @@ public class EstudianteDetalleServlet extends HttpServlet {
             return;
         }
 
-        req.setAttribute("estudianteDetalle", usuarioOpt.get());
+        Usuario usuario = usuarioOpt.get();
+        if (usuario.getIdPersona() != null) {
+            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            try {
+                schemas.Estudiante est = em.find(schemas.Estudiante.class, usuario.getIdPersona());
+                req.setAttribute("personaDetalle", est);
+            } finally {
+                em.close();
+            }
+        }
+
+        req.setAttribute("estudianteDetalle", usuario);
         req.getRequestDispatcher("/WEB-INF/jsp/admin/detalle-estudiante.jsp").forward(req, resp);
     }
 }
-

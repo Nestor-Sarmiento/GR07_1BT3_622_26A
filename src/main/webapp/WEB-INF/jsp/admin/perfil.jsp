@@ -67,7 +67,7 @@
             </a>
         </nav>
         <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-            <c:out value="${sessionScope.adminLogueado.nombre.substring(0,1).toUpperCase()}"/>
+            <c:out value="${requestScope.admin.nombre.substring(0,1).toUpperCase()}"/>
         </div>
     </div>
 </header>
@@ -156,7 +156,7 @@
                                             </label>
                                             <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2 text-on-surface font-medium focus:ring-2 focus:ring-primary-container outline-none transition-all"
                                                    id="primer_nombre" name="primer_nombre" type="text"
-                                                   value="<c:out value='${sessionScope.adminLogueado.nombre}'/>"
+                                                   value="<c:out value='${requestScope.admin.nombre}'/>"
                                                    required/>
                                         </div>
                                         <div>
@@ -165,7 +165,7 @@
                                             </label>
                                             <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2 text-on-surface font-medium focus:ring-2 focus:ring-primary-container outline-none transition-all"
                                                    id="segundo_nombre" name="segundo_nombre" type="text"
-                                                   value="<c:out value='${sessionScope.adminLogueado.segundoNombre}'/>"/>
+                                                   value="<c:out value='${requestScope.admin.segundoNombre}'/>"/>
                                         </div>
                                     </div>
                                 </div>
@@ -180,7 +180,7 @@
                                             </label>
                                             <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2 text-on-surface font-medium focus:ring-2 focus:ring-primary-container outline-none transition-all"
                                                    id="primer_apellido" name="primer_apellido" type="text"
-                                                   value="<c:out value='${sessionScope.adminLogueado.apellido}'/>"
+                                                   value="<c:out value='${requestScope.admin.apellido}'/>"
                                                    required/>
                                         </div>
                                         <div>
@@ -189,7 +189,7 @@
                                             </label>
                                             <input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2 text-on-surface font-medium focus:ring-2 focus:ring-primary-container outline-none transition-all"
                                                    id="segundo_apellido" name="segundo_apellido" type="text"
-                                                   value="<c:out value='${sessionScope.adminLogueado.segundoApellido}'/>"/>
+                                                   value="<c:out value='${requestScope.admin.segundoApellido}'/>"/>
                                         </div>
                                     </div>
                                 </div>
@@ -287,8 +287,8 @@
                     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm space-y-3">
                         <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest">Tu cuenta</h4>
                         <p class="text-sm font-semibold text-indigo-900">
-                            <c:out value="${sessionScope.adminLogueado.nombre}"/>
-                            <c:out value="${sessionScope.adminLogueado.apellido}"/>
+                            <c:out value="${requestScope.admin.nombre}"/>
+                            <c:out value="${requestScope.admin.apellido}"/>
                         </p>
                         <p class="text-xs text-slate-400"><c:out value="${sessionScope.adminLogueado.email}"/></p>
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">

@@ -2,9 +2,9 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%-- =============================================
      Vista: perfil-tutor.jsp
-     Servlet: PerfilTutorServlet → GET /tutor/perfil
+     Servlet: PerfilTutorServlet → GET|POST /tutor/perfil
      Session: usuarioLogueado (Rol.TUTOR)
-     Atributos: materias (MateriaFIS[])
+     Atributos: materias (MateriaFIS[]), tutorPerfil, flashOk, flashError
      ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -104,7 +104,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.tutorPerfil.nombre}"/></strong>
             </span>
             <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
                 <span class="material-symbols-outlined">notifications</span>
@@ -114,7 +114,7 @@
                 <span class="material-symbols-outlined">logout</span>
             </a>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                <c:out value="${requestScope.tutorPerfil.nombre.substring(0,1).toUpperCase()}"/>
             </div>
         </div>
     </header>
@@ -129,6 +129,17 @@
                 <p class="text-on-surface-variant text-lg leading-relaxed">Gestiona tu información académica y personal.</p>
             </div>
 
+            <c:if test="${not empty flashOk}">
+                <div class="rounded-xl bg-green-50 border border-green-200 text-green-900 px-4 py-3 text-sm font-medium">
+                    <c:out value="${flashOk}"/>
+                </div>
+            </c:if>
+            <c:if test="${not empty flashError}">
+                <div class="rounded-xl bg-red-50 border border-red-200 text-red-900 px-4 py-3 text-sm font-medium">
+                    <c:out value="${flashError}"/>
+                </div>
+            </c:if>
+
             <%-- ── Sección 1: Información Actual ── --%>
             <section>
                 <div class="flex items-center gap-2 mb-5 text-primary">
@@ -139,9 +150,9 @@
                     <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
                         <span class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant mb-2 block">Nombre Actual</span>
                         <p class="text-lg font-semibold text-on-surface">
-                            <c:out value="${sessionScope.usuarioLogueado.nombre}"/>
-                            <c:if test="${not empty sessionScope.usuarioLogueado.apellido}">
-                                <c:out value=" ${sessionScope.usuarioLogueado.apellido}"/>
+                            <c:out value="${requestScope.tutorPerfil.nombre}"/>
+                            <c:if test="${not empty requestScope.tutorPerfil.apellido}">
+                                <c:out value=" ${requestScope.tutorPerfil.apellido}"/>
                             </c:if>
                         </p>
                     </div>
@@ -160,12 +171,14 @@
                     <span class="material-symbols-outlined">edit_square</span>
                     <h3 class="text-xl font-bold">Actualizar Perfil</h3>
                 </div>
-                <form action="#" method="post" class="max-w-xl">
+                <form action="${pageContext.request.contextPath}/tutor/perfil" method="post" class="max-w-xl">
+                    <input type="hidden" name="accion" value="nombre"/>
                     <label class="block text-sm font-semibold text-on-surface-variant mb-2" for="new_name">
                         Nuevo Nombre de Cuenta
                     </label>
                     <input id="new_name" name="nombre" type="text"
                            placeholder="Ej. Juan Pérez García"
+                           value="<c:out value="${requestScope.tutorPerfil.nombre}"/>"
                            class="w-full bg-surface-container-high border-none rounded-lg p-4 text-on-surface
                                   focus:ring-2 focus:ring-primary/30 transition-all mb-6"/>
                     <button type="submit"
@@ -209,6 +222,11 @@
                         </span>
                     </div>
 
+                    <form id="formMaterias" action="${pageContext.request.contextPath}/tutor/perfil" method="post" class="hidden">
+                        <input type="hidden" name="accion" value="materias"/>
+                        <input type="hidden" name="materias" id="inputMateriasPayload" value=""/>
+                    </form>
+
                     <%-- Guardar materias --%>
                     <button type="button" id="btnGuardarMaterias" onclick="guardarMaterias()"
                             class="flex items-center gap-2 bg-primary text-on-primary font-semibold
@@ -225,14 +243,15 @@
                     <span class="material-symbols-outlined">description</span>
                     <h3 class="text-xl font-bold">Descripción</h3>
                 </div>
-                <form id="formDescripcion" onsubmit="guardarDescripcion(event)" class="max-w-xl" novalidate>
+                <form id="formDescripcion" action="${pageContext.request.contextPath}/tutor/perfil" method="post" class="max-w-xl">
+                    <input type="hidden" name="accion" value="bio"/>
                     <label class="block text-sm font-semibold text-on-surface-variant mb-2" for="bio">
                         Biografía Profesional <span class="text-error">*</span>
                     </label>
                     <textarea id="bio" name="bio" required rows="6"
                               placeholder="Escribe un breve resumen sobre tu trayectoria académica y experiencia profesional..."
                               class="w-full bg-surface-container-high border-none rounded-lg p-4 text-on-surface
-                                     focus:ring-2 focus:ring-primary/30 transition-all resize-none mb-1"></textarea>
+                                     focus:ring-2 focus:ring-primary/30 transition-all resize-none mb-1"><c:out value="${requestScope.tutorPerfil.descripcionProfesional}"/></textarea>
                     <p id="bioError" class="hidden text-xs text-error font-semibold mb-3">
                         La descripción es obligatoria.
                     </p>
@@ -256,11 +275,50 @@
     </footer>
 </main>
 
+<c:choose>
+    <c:when test="${empty requestScope.tutorPerfil or empty requestScope.tutorPerfil.materiasRelacionadas}">
+        <script type="application/json" id="initialMateriasJson">[]</script>
+    </c:when>
+    <c:otherwise>
+        <script type="application/json" id="initialMateriasJson">[<c:forEach var="mf" items="${requestScope.tutorPerfil.materiasRelacionadas}" varStatus="st">"${mf.name()}"<c:if test="${!st.last}">,</c:if></c:forEach>]</script>
+    </c:otherwise>
+</c:choose>
+
 <script>
+    const materiaLabels = {};
+    document.querySelectorAll('#selectMateria option[data-nombre]').forEach(function (opt) {
+        if (opt.value) materiaLabels[opt.value] = opt.dataset.nombre;
+    });
+
     /* ── Chips de materias ── */
     const select = document.getElementById('selectMateria');
     const chipsContainer = document.getElementById('chipsContainer');
     const selectedMaterias = new Set();
+
+    function addChip(value, nombre) {
+        const chip = document.createElement('div');
+        chip.id = 'chip-' + value;
+        chip.className = 'flex items-center gap-2 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all';
+        chip.style.backgroundColor = '#56C7E6';
+        chip.innerHTML =
+            '<span>' + nombre + '</span>' +
+            '<button type="button" onclick="removeMateria(\'' + value + '\')" ' +
+            'class="ml-1 text-white/70 hover:text-white font-bold text-base leading-none">&times;</button>';
+        chipsContainer.appendChild(chip);
+    }
+
+    (function loadInitialMaterias() {
+        const el = document.getElementById('initialMateriasJson');
+        if (!el) return;
+        try {
+            const names = JSON.parse(el.textContent || '[]');
+            names.forEach(function (name) {
+                if (!name || selectedMaterias.has(name)) return;
+                selectedMaterias.add(name);
+                addChip(name, materiaLabels[name] || name);
+            });
+        } catch (e) { /* ignore */ }
+    })();
 
     select.addEventListener('change', function () {
         const opt = this.options[this.selectedIndex];
@@ -272,15 +330,7 @@
             return;
         }
         selectedMaterias.add(value);
-        const chip = document.createElement('div');
-        chip.id = 'chip-' + value;
-        chip.className = 'flex items-center gap-2 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all';
-        chip.style.backgroundColor = '#56C7E6';
-        chip.innerHTML =
-            '<span>' + nombre + '</span>' +
-            '<button type="button" onclick="removeMateria(\'' + value + '\')" ' +
-            'class="ml-1 text-white/70 hover:text-white font-bold text-base leading-none">&times;</button>';
-        chipsContainer.appendChild(chip);
+        addChip(value, nombre);
         this.value = '';
     });
 
@@ -290,37 +340,24 @@
         if (chip) chip.remove();
     }
 
-    /* ── Feedback botón guardar materias ── */
+    /* ── Guardar materias en servidor ── */
     function guardarMaterias() {
-        const btn = document.getElementById('btnGuardarMaterias');
-        btn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> Guardado';
-        btn.style.backgroundColor = '#15803d';
-        setTimeout(function () {
-            btn.innerHTML = '<span class="material-symbols-outlined text-lg">save</span> Guardar materias';
-            btn.style.backgroundColor = '';
-        }, 2000);
+        document.getElementById('inputMateriasPayload').value = Array.from(selectedMaterias).join(',');
+        document.getElementById('formMaterias').submit();
     }
 
-    /* ── Validación y feedback descripción ── */
-    function guardarDescripcion(e) {
-        e.preventDefault();
+    /* ── Validación descripción (antes de enviar al servidor) ── */
+    document.getElementById('formDescripcion').addEventListener('submit', function (e) {
         const bio = document.getElementById('bio').value.trim();
         const errorMsg = document.getElementById('bioError');
         if (!bio) {
+            e.preventDefault();
             errorMsg.classList.remove('hidden');
             document.getElementById('bio').focus();
             return;
         }
         errorMsg.classList.add('hidden');
-        const btn = document.getElementById('btnDescripcion');
-        const original = btn.innerHTML;
-        btn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> Guardado';
-        btn.style.backgroundColor = '#15803d';
-        setTimeout(function () {
-            btn.innerHTML = original;
-            btn.style.backgroundColor = '';
-        }, 2000);
-    }
+    });
 </script>
 
 </body>

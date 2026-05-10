@@ -29,6 +29,17 @@ public class DetalleMaterialTutorServlet extends HttpServlet {
             return;
         }
 
+        // Cargar perfil del tutor para el encabezado de la vista
+        if (tutor.getIdPersona() != null) {
+            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            try {
+                schemas.Tutor tutorPerfil = em.find(schemas.Tutor.class, tutor.getIdPersona());
+                req.setAttribute("tutorPerfil", tutorPerfil);
+            } finally {
+                em.close();
+            }
+        }
+
         String idStr = req.getParameter("id");
         if (idStr != null && !idStr.isBlank()) {
             try {

@@ -65,6 +65,12 @@
             <span class="material-symbols-outlined">search</span>
             Buscar Tutor
         </a>
+        <%-- Mi Perfil --%>
+        <a href="${pageContext.request.contextPath}/perfil"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
+            <span class="material-symbols-outlined">person</span>
+            Mi Perfil
+        </a>
         <%-- Gestión de tutorías --%>
         <a href="#"
            class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all">
@@ -96,18 +102,24 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.estudiantePerfil.nombre}"/></strong>
             </span>
             <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
                 <span class="material-symbols-outlined">notifications</span>
             </button>
+            <a href="${pageContext.request.contextPath}/perfil"
+               class="p-2 text-slate-600 hover:bg-indigo-50 rounded-full transition-colors">
+                <span class="material-symbols-outlined">settings</span>
+            </a>
             <a href="${pageContext.request.contextPath}/logout"
                class="p-2 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors">
                 <span class="material-symbols-outlined">logout</span>
             </a>
-            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
-            </div>
+            <a href="${pageContext.request.contextPath}/perfil"
+               class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm hover:ring-2 hover:ring-indigo-400 transition-all"
+               title="Mi Perfil">
+                <c:out value="${requestScope.estudiantePerfil.nombre.substring(0,1).toUpperCase()}"/>
+            </a>
         </div>
     </header>
 
@@ -118,7 +130,7 @@
             <%-- Bienvenida --%>
             <header class="mb-12">
                 <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface mb-2">
-                    Hola, <c:out value="${sessionScope.usuarioLogueado.nombre}"/> &#x1F44B;
+                    Hola, <c:out value="${requestScope.estudiantePerfil.nombre}"/> &#x1F44B;
                 </h2>
                 <p class="text-lg text-on-surface-variant font-medium">
                     Bienvenido de nuevo a tu espacio de aprendizaje.

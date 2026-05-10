@@ -43,15 +43,35 @@ public class EstudianteService {
         if (!validarNombre(nombre) || !validarCorreo(correo)) {
             throw new IllegalArgumentException("Datos del estudiante inválidos");
         }
-        Usuario estudiante = Usuario.builder()
-                .nombre(nombre)
-                .email(correo)
-                .password(password)
-                .rol(Rol.ESTUDIANTE)
-                .estado(Estados.POR_VERIFICAR)
-                .mustChangePassword(true)
-                .build();
-        return repo.save(estudiante);
+
+        jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+        jakarta.persistence.EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+
+            schemas.Estudiante person = schemas.Estudiante.builder()
+                    .nombre(nombre)
+                    .estado(Estados.POR_VERIFICAR)
+                    .mustChangePassword(true)
+                    .build();
+            em.persist(person);
+
+            Usuario usuario = Usuario.builder()
+                    .email(correo)
+                    .password(password)
+                    .rol(Rol.ESTUDIANTE)
+                    .idPersona(person.getId())
+                    .build();
+            em.persist(usuario);
+
+            tx.commit();
+            return usuario;
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
     }
 
     public List<Usuario> obtenerTodos(UsuarioRepository repo) {
