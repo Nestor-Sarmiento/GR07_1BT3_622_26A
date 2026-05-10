@@ -107,9 +107,11 @@
                class="p-2 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors">
                 <span class="material-symbols-outlined">logout</span>
             </a>
-            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
+            <a href="${pageContext.request.contextPath}/tutor/perfil"
+               class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm hover:ring-2 hover:ring-indigo-400 transition-all"
+               title="Mi Perfil">
                 <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
-            </div>
+            </a>
         </div>
     </header>
 
