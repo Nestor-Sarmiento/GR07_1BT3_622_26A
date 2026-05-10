@@ -208,7 +208,7 @@
                                 </span>
                             </div>
                             <div class="mt-auto">
-                                <a href="#"
+                                <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil"
                                    class="flex items-center justify-center gap-2 w-full py-2.5
                                           bg-primary/5 hover:bg-primary hover:text-on-primary text-primary
                                           rounded-lg text-sm font-bold transition-all duration-300">
@@ -245,7 +245,7 @@
                                 </span>
                             </div>
                             <div class="mt-auto">
-                                <a href="#"
+                                <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil"
                                    class="flex items-center justify-center gap-2 w-full py-2.5
                                           bg-primary/5 hover:bg-primary hover:text-on-primary text-primary
                                           rounded-lg text-sm font-bold transition-all duration-300">
@@ -280,7 +280,7 @@
                                 </span>
                             </div>
                             <div class="mt-auto">
-                                <a href="#"
+                                <a href="${pageContext.request.contextPath}/estudiante/tutor/perfil"
                                    class="flex items-center justify-center gap-2 w-full py-2.5
                                           bg-primary/5 hover:bg-primary hover:text-on-primary text-primary
                                           rounded-lg text-sm font-bold transition-all duration-300">
