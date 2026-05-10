@@ -1,7 +1,10 @@
 package servlets;
 
+import Enums.Carrera;
 import Enums.Estados;
+import Enums.MateriaFIS;
 import Enums.Rol;
+import Enums.Semestre;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -21,6 +24,9 @@ public class RegistroServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setAttribute("materias", MateriaFIS.values());
+        req.setAttribute("semestres", Semestre.values());
+        req.setAttribute("carreras", Carrera.values());
         req.getRequestDispatcher("/registro.jsp").forward(req, resp);
     }
 
@@ -33,6 +39,10 @@ public class RegistroServlet extends HttpServlet {
         String apellido = ServletUtils.value(req.getParameter("apellido"));
         String segundoApellido = ServletUtils.value(req.getParameter("segundoApellido"));
         String rolStr = ServletUtils.value(req.getParameter("rol"));
+
+        req.setAttribute("materias", MateriaFIS.values());
+        req.setAttribute("semestres", Semestre.values());
+        req.setAttribute("carreras", Carrera.values());
 
         if (email.isBlank() || password.isBlank() || nombre.isBlank() || apellido.isBlank() || rolStr.isBlank()) {
             req.setAttribute("error", "Todos los campos marcados como obligatorios (*) son requeridos.");
@@ -61,12 +71,26 @@ public class RegistroServlet extends HttpServlet {
                 savePersona(est);
                 idPersona = est.getId();
             } else if (rol == Rol.TUTOR) {
+                String[] materiasParam = req.getParameterValues("materias");
+                java.util.Set<MateriaFIS> materiasSet = new java.util.HashSet<>();
+                if (materiasParam != null) {
+                    for (String m : materiasParam) {
+                        try { materiasSet.add(MateriaFIS.valueOf(m)); }
+                        catch (IllegalArgumentException ignored) {}
+                    }
+                }
+                if (materiasSet.isEmpty()) {
+                    req.setAttribute("error", "Debes seleccionar al menos una materia relacionada.");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
                 schemas.Tutor tutor = schemas.Tutor.builder()
                         .nombre(nombre)
                         .segundoNombre(segundoNombre)
                         .apellido(apellido)
                         .segundoApellido(segundoApellido)
                         .estado(Estados.ACTIVO)
+                        .materiasRelacionadas(materiasSet)
                         .build();
                 savePersona(tutor);
                 idPersona = tutor.getId();

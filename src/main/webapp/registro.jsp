@@ -90,10 +90,34 @@
                        placeholder="Segundo Apellido">
             </div>
 
+            <%-- Semestre --%>
+            <div>
+                <label class="block text-sm font-bold text-indigo-900 mb-2">Semestre</label>
+                <select name="semestre"
+                        class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
+                    <option value="">-- Selecciona tu semestre --</option>
+                    <c:forEach var="sem" items="${semestres}">
+                        <option value="${sem.name()}"><c:out value="${sem.nombre}"/></option>
+                    </c:forEach>
+                </select>
+            </div>
+
+            <%-- Carrera --%>
+            <div>
+                <label class="block text-sm font-bold text-indigo-900 mb-2">Carrera</label>
+                <select name="carrera"
+                        class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
+                    <option value="">-- Selecciona tu carrera --</option>
+                    <c:forEach var="car" items="${carreras}">
+                        <option value="${car.name()}"><c:out value="${car.nombre}"/></option>
+                    </c:forEach>
+                </select>
+            </div>
+
             <%-- Rol --%>
             <div class="md:col-span-2">
                 <label class="block text-sm font-bold text-indigo-900 mb-2">Rol deseado *</label>
-                <select name="rol" required
+                <select id="rolSelect" name="rol" required
                         class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
                     <option value="" disabled selected>Selecciona un rol</option>
                     <option value="ESTUDIANTE">Estudiante</option>
@@ -102,7 +126,33 @@
             </div>
         </div>
 
-        <button type="submit"
+        <%-- Sección de materias (solo visible para TUTOR) --%>
+        <div id="seccionMaterias" class="hidden space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-indigo-900 mb-2">Materias relacionadas *</label>
+
+                <%-- Chips seleccionados --%>
+                <div id="chipsRegistro" class="flex flex-wrap gap-2 mb-3 min-h-[2rem]"></div>
+
+                <%-- Dropdown de materias --%>
+                <select id="selectMateriaRegistro"
+                        class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
+                    <option value="">-- Selecciona una materia --</option>
+                    <c:forEach var="materia" items="${materias}">
+                        <option value="${materia.name()}" data-nombre="${materia.nombre}">
+                            <c:out value="${materia.nombre}"/> (<c:out value="${materia.id}"/>)
+                        </option>
+                    </c:forEach>
+                </select>
+
+                <p id="errorMaterias" class="hidden mt-2 text-sm text-red-600 font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">error</span>
+                    Debes seleccionar al menos una materia.
+                </p>
+            </div>
+        </div>
+
+        <button type="submit" id="btnRegistro"
                 class="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-container transition-all shadow-lg shadow-indigo-200 mt-4">
             Registrarse
         </button>
@@ -114,6 +164,86 @@
     </form>
 </div>
 
+<script>
+    (function () {
+        var rolSelect       = document.getElementById('rolSelect');
+        var seccionMaterias = document.getElementById('seccionMaterias');
+        var selectMateria   = document.getElementById('selectMateriaRegistro');
+        var chipsContainer  = document.getElementById('chipsRegistro');
+        var errorMaterias   = document.getElementById('errorMaterias');
+        var form            = document.querySelector('form');
+
+        var selectedMaterias = new Set();
+
+        rolSelect.addEventListener('change', function () {
+            if (this.value === 'TUTOR') {
+                seccionMaterias.classList.remove('hidden');
+            } else {
+                seccionMaterias.classList.add('hidden');
+                clearMaterias();
+            }
+        });
+
+        selectMateria.addEventListener('change', function () {
+            var val    = this.value;
+            var nombre = this.options[this.selectedIndex].dataset.nombre;
+            this.value = '';
+
+            if (!val || selectedMaterias.has(val)) return;
+
+            selectedMaterias.add(val);
+            errorMaterias.classList.add('hidden');
+
+            var chip = document.createElement('span');
+            chip.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold text-white';
+            chip.style.backgroundColor = '#56C7E6';
+            chip.dataset.value = val;
+
+            var hidden = document.createElement('input');
+            hidden.type  = 'hidden';
+            hidden.name  = 'materias';
+            hidden.value = val;
+            hidden.id    = 'hidden_' + val;
+
+            var label = document.createElement('span');
+            label.textContent = nombre;
+
+            var btn = document.createElement('button');
+            btn.type      = 'button';
+            btn.className = 'ml-1 text-white/80 hover:text-white font-bold leading-none';
+            btn.textContent = '×';
+            btn.addEventListener('click', function () {
+                selectedMaterias.delete(val);
+                chip.remove();
+                var h = document.getElementById('hidden_' + val);
+                if (h) h.remove();
+            });
+
+            chip.appendChild(label);
+            chip.appendChild(btn);
+            chipsContainer.appendChild(chip);
+            form.appendChild(hidden);
+        });
+
+        form.addEventListener('submit', function (e) {
+            if (rolSelect.value === 'TUTOR' && selectedMaterias.size === 0) {
+                e.preventDefault();
+                errorMaterias.classList.remove('hidden');
+                seccionMaterias.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        function clearMaterias() {
+            selectedMaterias.forEach(function (val) {
+                var h = document.getElementById('hidden_' + val);
+                if (h) h.remove();
+            });
+            selectedMaterias.clear();
+            chipsContainer.innerHTML = '';
+            errorMaterias.classList.add('hidden');
+        }
+    })();
+</script>
 </body>
 </html>
 
