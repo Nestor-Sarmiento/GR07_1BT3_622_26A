@@ -4,7 +4,7 @@
      Vista: perfil-tutor.jsp
      Servlet: PerfilTutorServlet → GET|POST /tutor/perfil
      Session: usuarioLogueado (Rol.TUTOR)
-     Atributos: materias (MateriaFIS[]), tutorPerfil, flashOk, flashError
+     Atributos: carreras, materiasPorCarreraJson, tutorPerfil, flashOk, flashError
      ============================================= --%>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -190,19 +190,75 @@
                 </form>
             </section>
 
-            <%-- ── Sección 3: Materias relacionadas ── --%>
+            <%-- ── Semestre académico (define el tope de materias que puede dar) ── --%>
+            <section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-2 mb-6 text-primary">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                    <h3 class="text-xl font-bold">Semestre que cursas</h3>
+                </div>
+                <p class="text-sm text-on-surface-variant mb-4 max-w-xl">
+                    Solo puedes registrar como tutorías las asignaturas de <strong>semestres anteriores</strong> al que cursas
+                    (ej. si estás en 5.º, hasta 4.º).
+                </p>
+                <form action="${pageContext.request.contextPath}/tutor/perfil" method="post" class="max-w-xl flex flex-col sm:flex-row gap-3 items-end">
+                    <input type="hidden" name="accion" value="semestre"/>
+                    <div class="flex-1 w-full">
+                        <label class="block text-sm font-semibold text-on-surface-variant mb-2" for="selectSemestrePerfil">Semestre actual</label>
+                        <select id="selectSemestrePerfil" name="semestre" required
+                                class="w-full bg-surface-container-high border-none rounded-lg p-4 text-on-surface
+                                       focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none">
+                            <option value="">— Selecciona —</option>
+                            <c:forEach var="sem" items="${semestres}">
+                                <option value="${sem.name()}"
+                                    <c:if test="${not empty requestScope.tutorPerfil.semestre and requestScope.tutorPerfil.semestre == sem}">selected="selected"</c:if>>
+                                    <c:out value="${sem.nombre}"/>
+                                </option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <button type="submit"
+                            class="shrink-0 flex items-center gap-2 bg-secondary-container text-on-secondary-container font-semibold
+                                   px-6 py-3 rounded-lg hover:opacity-90 transition-all shadow-sm whitespace-nowrap">
+                        <span class="material-symbols-outlined text-lg">save</span>
+                        Guardar semestre
+                    </button>
+                </form>
+            </section>
+
+            <%-- ── Sección 3: Carrera y materias relacionadas (por plan FIS) ── --%>
             <section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10 shadow-sm">
                 <div class="flex items-center gap-2 mb-6 text-primary">
                     <span class="material-symbols-outlined">school</span>
                     <h3 class="text-xl font-bold">Materias relacionadas</h3>
                 </div>
                 <div class="max-w-xl">
+                    <label class="block text-sm font-semibold text-on-surface-variant mb-2" for="selectCarreraPerfil">
+                        Carrera (plan de estudios) <span class="text-error">*</span>
+                    </label>
+                    <div class="relative mb-6">
+                        <select id="selectCarreraPerfil"
+                                class="w-full bg-surface-container-high border-none rounded-lg p-4 text-on-surface
+                                       focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none pr-10">
+                            <option value="">— Selecciona tu carrera —</option>
+                            <c:forEach var="car" items="${carreras}">
+                                <option value="${car.name()}"
+                                    <c:if test="${not empty requestScope.tutorPerfil and requestScope.tutorPerfil.carrera == car}">selected="selected"</c:if>>
+                                    <c:out value="${car.nombre}"/>
+                                </option>
+                            </c:forEach>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">
+                            expand_more
+                        </span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant mb-4">
+                        Las materias dependen de tu <strong>carrera</strong> y del <strong>semestre</strong> guardado arriba (solo niveles ya cursados).
+                    </p>
+
                     <%-- Chips de materias seleccionadas --%>
                     <div id="chipsContainer" class="flex flex-wrap gap-3 mb-5 min-h-[2.5rem]">
-                        <%-- Los chips se insertan aquí por JavaScript --%>
                     </div>
 
-                    <%-- Selector de materias --%>
                     <label class="block text-sm font-semibold text-on-surface-variant mb-2">
                         Añadir materia
                     </label>
@@ -210,12 +266,7 @@
                         <select id="selectMateria"
                                 class="w-full bg-surface-container-high border-none rounded-lg p-4 text-on-surface
                                        focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none pr-10">
-                            <option value="">— Seleccionar materia —</option>
-                            <c:forEach var="materia" items="${materias}">
-                                <option value="${materia.name()}" data-nombre="${materia.nombre}">
-                                    <c:out value="${materia.nombre}"/> — <c:out value="${materia.id}"/>
-                                </option>
-                            </c:forEach>
+                            <option value="">— Primero elige carrera —</option>
                         </select>
                         <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">
                             expand_more
@@ -224,6 +275,7 @@
 
                     <form id="formMaterias" action="${pageContext.request.contextPath}/tutor/perfil" method="post" class="hidden">
                         <input type="hidden" name="accion" value="materias"/>
+                        <input type="hidden" name="carrera" id="inputCarreraPayload" value=""/>
                         <input type="hidden" name="materias" id="inputMateriasPayload" value=""/>
                     </form>
 
@@ -275,74 +327,134 @@
     </footer>
 </main>
 
+<script type="application/json" id="materiasPorCarreraJson"><c:out value="${materiasPorCarreraJson}" escapeXml="false"/></script>
+<script type="application/json" id="initialCarreraJson"><c:choose><c:when test="${not empty requestScope.tutorPerfil.carrera}">"<c:out value="${requestScope.tutorPerfil.carrera.name()}"/>"</c:when><c:otherwise>null</c:otherwise></c:choose></script>
 <c:choose>
-    <c:when test="${empty requestScope.tutorPerfil or empty requestScope.tutorPerfil.materiasRelacionadas}">
+    <c:when test="${empty requestScope.tutorPerfil or empty requestScope.tutorPerfil.codigosMateriaRelacionadas}">
         <script type="application/json" id="initialMateriasJson">[]</script>
     </c:when>
     <c:otherwise>
-        <script type="application/json" id="initialMateriasJson">[<c:forEach var="mf" items="${requestScope.tutorPerfil.materiasRelacionadas}" varStatus="st">"${mf.name()}"<c:if test="${!st.last}">,</c:if></c:forEach>]</script>
+        <script type="application/json" id="initialMateriasJson">[<c:forEach var="cod" items="${requestScope.tutorPerfil.codigosMateriaRelacionadas}" varStatus="st">"<c:out value="${cod}"/>"<c:if test="${!st.last}">,</c:if></c:forEach>]</script>
     </c:otherwise>
 </c:choose>
 
 <script>
-    const materiaLabels = {};
-    document.querySelectorAll('#selectMateria option[data-nombre]').forEach(function (opt) {
-        if (opt.value) materiaLabels[opt.value] = opt.dataset.nombre;
-    });
-
-    /* ── Chips de materias ── */
-    const select = document.getElementById('selectMateria');
+    const tutorSemestreTopeExclusivo = <c:choose><c:when test="${not empty requestScope.tutorPerfil.semestre}">${requestScope.tutorPerfil.semestre.numero}</c:when><c:otherwise>null</c:otherwise></c:choose>;
+    const materiasPorCarrera = JSON.parse(document.getElementById('materiasPorCarreraJson').textContent);
+    const selectCarrera = document.getElementById('selectCarreraPerfil');
+    const selectMateria = document.getElementById('selectMateria');
     const chipsContainer = document.getElementById('chipsContainer');
     const selectedMaterias = new Set();
 
-    function addChip(value, nombre) {
+    function chipId(codigo) {
+        return 'chip-' + codigo.replace(/[^a-zA-Z0-9]/g, '_');
+    }
+
+    function hintOpt(text) {
+        const h = document.createElement('option');
+        h.value = '';
+        h.disabled = true;
+        h.textContent = text;
+        selectMateria.appendChild(h);
+    }
+
+    function refillMateriaSelect(carreraName) {
+        selectMateria.innerHTML = '<option value="">— Seleccionar materia —</option>';
+        if (!carreraName || !materiasPorCarrera[carreraName]) {
+            hintOpt('— Primero elige tu carrera arriba —');
+            return;
+        }
+        if (tutorSemestreTopeExclusivo == null) {
+            hintOpt('— Primero guarda tu semestre en la sección anterior —');
+            return;
+        }
+        if (tutorSemestreTopeExclusivo <= 1) {
+            hintOpt('— En 1.er semestre no puedes ofrecer materias —');
+            return;
+        }
+        const list = materiasPorCarrera[carreraName].slice().filter(function (m) {
+            return m.semestre < tutorSemestreTopeExclusivo;
+        }).sort(function (a, b) {
+            if (a.semestre !== b.semestre) return a.semestre - b.semestre;
+            return a.nombre.localeCompare(b.nombre);
+        });
+        if (list.length === 0) {
+            hintOpt('— No hay materias de semestres anteriores —');
+            return;
+        }
+        list.forEach(function (m) {
+            const opt = document.createElement('option');
+            opt.value = m.codigo;
+            opt.setAttribute('data-nombre', m.nombre);
+            opt.textContent = m.nombre + ' — ' + m.codigo;
+            selectMateria.appendChild(opt);
+        });
+    }
+
+    function addChip(codigo, nombre) {
         const chip = document.createElement('div');
-        chip.id = 'chip-' + value;
+        chip.id = chipId(codigo);
         chip.className = 'flex items-center gap-2 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all';
         chip.style.backgroundColor = '#56C7E6';
-        chip.innerHTML =
-            '<span>' + nombre + '</span>' +
-            '<button type="button" onclick="removeMateria(\'' + value + '\')" ' +
-            'class="ml-1 text-white/70 hover:text-white font-bold text-base leading-none">&times;</button>';
+        const sp = document.createElement('span');
+        sp.textContent = nombre;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ml-1 text-white/70 hover:text-white font-bold text-base leading-none';
+        btn.textContent = '\u00d7';
+        btn.addEventListener('click', function () {
+            selectedMaterias.delete(codigo);
+            chip.remove();
+        });
+        chip.appendChild(sp);
+        chip.appendChild(btn);
         chipsContainer.appendChild(chip);
     }
 
-    (function loadInitialMaterias() {
-        const el = document.getElementById('initialMateriasJson');
-        if (!el) return;
+    selectCarrera.addEventListener('change', function () {
+        selectedMaterias.clear();
+        chipsContainer.innerHTML = '';
+        refillMateriaSelect(this.value);
+    });
+
+    selectMateria.addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        if (!opt.value) return;
+        const codigo = opt.value;
+        const nombre = opt.getAttribute('data-nombre') || codigo;
+        this.value = '';
+        if (selectedMaterias.has(codigo)) return;
+        selectedMaterias.add(codigo);
+        addChip(codigo, nombre);
+    });
+
+    (function initPerfilMaterias() {
         try {
-            const names = JSON.parse(el.textContent || '[]');
-            names.forEach(function (name) {
-                if (!name || selectedMaterias.has(name)) return;
-                selectedMaterias.add(name);
-                addChip(name, materiaLabels[name] || name);
+            const carreraIni = JSON.parse(document.getElementById('initialCarreraJson').textContent);
+            if (carreraIni && selectCarrera.querySelector('option[value="' + carreraIni + '"]')) {
+                selectCarrera.value = carreraIni;
+            }
+        } catch (e) { /* ignore */ }
+        refillMateriaSelect(selectCarrera.value);
+        try {
+            const codigos = JSON.parse(document.getElementById('initialMateriasJson').textContent || '[]');
+            codigos.forEach(function (codigo) {
+                if (!codigo || selectedMaterias.has(codigo)) return;
+                selectedMaterias.add(codigo);
+                const opt = selectMateria.querySelector('option[value="' + codigo + '"]');
+                const nombre = opt ? (opt.getAttribute('data-nombre') || codigo) : codigo;
+                addChip(codigo, nombre);
             });
         } catch (e) { /* ignore */ }
     })();
 
-    select.addEventListener('change', function () {
-        const opt = this.options[this.selectedIndex];
-        if (!opt.value) return;
-        const value = opt.value;
-        const nombre = opt.dataset.nombre;
-        if (selectedMaterias.has(value)) {
-            this.value = '';
+    function guardarMaterias() {
+        if (tutorSemestreTopeExclusivo === null) {
+            alert('Primero guarda tu semestre en la sección anterior para filtrar las materias que puedes dar.');
             return;
         }
-        selectedMaterias.add(value);
-        addChip(value, nombre);
-        this.value = '';
-    });
-
-    function removeMateria(value) {
-        selectedMaterias.delete(value);
-        const chip = document.getElementById('chip-' + value);
-        if (chip) chip.remove();
-    }
-
-    /* ── Guardar materias en servidor ── */
-    function guardarMaterias() {
         document.getElementById('inputMateriasPayload').value = Array.from(selectedMaterias).join(',');
+        document.getElementById('inputCarreraPayload').value = selectCarrera.value || '';
         document.getElementById('formMaterias').submit();
     }
 

@@ -1,7 +1,10 @@
 package servlets;
 
+import Enums.Carrera;
 import Enums.Estados;
+import Enums.MateriasCatalogo;
 import Enums.Rol;
+import Enums.Semestre;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,10 +12,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import repositories.AdminRepository;
 import repositories.UsuarioRepository;
-import schemas.Admin;
 import schemas.Usuario;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @WebServlet(name = "registroServlet", urlPatterns = "/registro")
 public class RegistroServlet extends HttpServlet {
@@ -21,6 +27,9 @@ public class RegistroServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setAttribute("semestres", Semestre.values());
+        req.setAttribute("carreras", Carrera.values());
+        req.setAttribute("materiasPorCarreraJson", MateriasCatalogo.toJsonPorCarrera());
         req.getRequestDispatcher("/registro.jsp").forward(req, resp);
     }
 
@@ -33,6 +42,12 @@ public class RegistroServlet extends HttpServlet {
         String apellido = ServletUtils.value(req.getParameter("apellido"));
         String segundoApellido = ServletUtils.value(req.getParameter("segundoApellido"));
         String rolStr = ServletUtils.value(req.getParameter("rol"));
+        String semestreStr = ServletUtils.value(req.getParameter("semestre"));
+        String carreraStr = ServletUtils.value(req.getParameter("carrera"));
+
+        req.setAttribute("semestres", Semestre.values());
+        req.setAttribute("carreras", Carrera.values());
+        req.setAttribute("materiasPorCarreraJson", MateriasCatalogo.toJsonPorCarrera());
 
         if (email.isBlank() || password.isBlank() || nombre.isBlank() || apellido.isBlank() || rolStr.isBlank()) {
             req.setAttribute("error", "Todos los campos marcados como obligatorios (*) son requeridos.");
@@ -50,6 +65,15 @@ public class RegistroServlet extends HttpServlet {
             Rol rol = Rol.valueOf(rolStr.toUpperCase());
             Long idPersona = null;
 
+            Semestre semestre = null;
+            if (!semestreStr.isBlank()) {
+                semestre = Semestre.valueOf(semestreStr);
+            }
+            Carrera carreraRegistro = null;
+            if (!carreraStr.isBlank()) {
+                carreraRegistro = Carrera.valueOf(carreraStr);
+            }
+
             if (rol == Rol.ESTUDIANTE) {
                 schemas.Estudiante est = schemas.Estudiante.builder()
                         .nombre(nombre)
@@ -57,16 +81,53 @@ public class RegistroServlet extends HttpServlet {
                         .apellido(apellido)
                         .segundoApellido(segundoApellido)
                         .estado(Estados.ACTIVO)
+                        .semestre(semestre)
+                        .carrera(carreraRegistro)
                         .build();
                 savePersona(est);
                 idPersona = est.getId();
             } else if (rol == Rol.TUTOR) {
+                if (carreraRegistro == null) {
+                    req.setAttribute("error", "Debes seleccionar tu carrera para registrar materias como tutor.");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
+                if (semestre == null) {
+                    req.setAttribute("error", "Como tutor debes indicar el semestre en que cursas.");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
+                if (semestre.getNumero() <= 1) {
+                    req.setAttribute("error",
+                            "En primer semestre no puedes ofrecer tutorías de la malla (solo niveles inferiores al tuyo).");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
+                String[] materiasParam = req.getParameterValues("materias");
+                Iterable<String> tokens = materiasParam == null ? List.of() : Arrays.asList(materiasParam);
+                Optional<Set<String>> codigosOpt =
+                        MateriasCatalogo.normalizarCodigosParaTutor(carreraRegistro, semestre, tokens);
+                if (codigosOpt.isEmpty()) {
+                    req.setAttribute("error",
+                            "Una o más materias no son válidas para tu carrera y semestre (solo semestres anteriores al tuyo).");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
+                Set<String> codigos = codigosOpt.get();
+                if (codigos.isEmpty()) {
+                    req.setAttribute("error", "Debes seleccionar al menos una materia relacionada.");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
                 schemas.Tutor tutor = schemas.Tutor.builder()
                         .nombre(nombre)
                         .segundoNombre(segundoNombre)
                         .apellido(apellido)
                         .segundoApellido(segundoApellido)
                         .estado(Estados.ACTIVO)
+                        .carrera(carreraRegistro)
+                        .semestre(semestre)
+                        .codigosMateriaRelacionadas(codigos)
                         .build();
                 savePersona(tutor);
                 idPersona = tutor.getId();
@@ -83,7 +144,7 @@ public class RegistroServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login?mensaje=Registro+exitoso.+Ya+puedes+iniciar+sesion.");
 
         } catch (IllegalArgumentException e) {
-            req.setAttribute("error", "Rol no válido seleccionado.");
+            req.setAttribute("error", "Rol, carrera o semestre no válido.");
             req.getRequestDispatcher("/registro.jsp").forward(req, resp);
         } catch (Exception e) {
             req.setAttribute("error", "Error al procesar el registro: " + e.getMessage());
@@ -99,7 +160,9 @@ public class RegistroServlet extends HttpServlet {
             em.persist(persona);
             tx.commit();
         } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
+            if (tx.isActive()) {
+                tx.rollback();
+            }
             throw e;
         } finally {
             em.close();

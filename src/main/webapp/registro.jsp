@@ -90,10 +90,39 @@
                        placeholder="Segundo Apellido">
             </div>
 
+            <%-- Semestre --%>
+            <div>
+                <label class="block text-sm font-bold text-indigo-900 mb-2">
+                    Semestre <span id="semestreLabelExtra" class="text-slate-400 font-normal text-xs"></span>
+                </label>
+                <select id="selectSemestreRegistro" name="semestre"
+                        class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
+                    <option value="">-- Selecciona tu semestre --</option>
+                    <c:forEach var="sem" items="${semestres}">
+                        <option value="${sem.name()}" data-num="${sem.numero}"><c:out value="${sem.nombre}"/></option>
+                    </c:forEach>
+                </select>
+                <p id="hintSemestreTutor" class="hidden text-xs text-slate-500 mt-1">
+                    Solo podrás elegir materias de semestres <strong>anteriores</strong> al que cursas (ej. 5.º → 1.º a 4.º).
+                </p>
+            </div>
+
+            <%-- Carrera --%>
+            <div>
+                <label class="block text-sm font-bold text-indigo-900 mb-2">Carrera</label>
+                <select id="selectCarreraRegistro" name="carrera"
+                        class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
+                    <option value="">-- Selecciona tu carrera --</option>
+                    <c:forEach var="car" items="${carreras}">
+                        <option value="${car.name()}"><c:out value="${car.nombre}"/></option>
+                    </c:forEach>
+                </select>
+            </div>
+
             <%-- Rol --%>
             <div class="md:col-span-2">
                 <label class="block text-sm font-bold text-indigo-900 mb-2">Rol deseado *</label>
-                <select name="rol" required
+                <select id="rolSelect" name="rol" required
                         class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
                     <option value="" disabled selected>Selecciona un rol</option>
                     <option value="ESTUDIANTE">Estudiante</option>
@@ -102,7 +131,24 @@
             </div>
         </div>
 
-        <button type="submit"
+        <%-- Sección de materias (solo TUTOR): lista depende de la carrera elegida arriba --%>
+        <div id="seccionMaterias" class="hidden space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-indigo-900 mb-2">Materias relacionadas *</label>
+                <p class="text-xs text-slate-500 mb-2">Misma <strong>carrera</strong> y <strong>semestre</strong> que arriba: solo asignaturas de semestres ya cursados (inferiores al tuyo).</p>
+                <div id="chipsRegistro" class="flex flex-wrap gap-2 mb-3 min-h-[2rem]"></div>
+                <select id="selectMateriaRegistro"
+                        class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all text-sm outline-none p-3 border">
+                    <option value="">— Primero confirma tu carrera arriba —</option>
+                </select>
+                <p id="errorMaterias" class="hidden mt-2 text-sm text-red-600 font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">error</span>
+                    <span id="errorMateriasMsg">Debes seleccionar al menos una materia.</span>
+                </p>
+            </div>
+        </div>
+
+        <button type="submit" id="btnRegistro"
                 class="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-container transition-all shadow-lg shadow-indigo-200 mt-4">
             Registrarse
         </button>
@@ -114,6 +160,208 @@
     </form>
 </div>
 
+<script type="application/json" id="materiasPorCarreraJsonReg"><c:out value="${materiasPorCarreraJson}" escapeXml="false"/></script>
+
+<script>
+    (function () {
+        var rolSelect        = document.getElementById('rolSelect');
+        var seccionMaterias  = document.getElementById('seccionMaterias');
+        var selectCarrera    = document.getElementById('selectCarreraRegistro');
+        var selectSemestre   = document.getElementById('selectSemestreRegistro');
+        var selectMateria    = document.getElementById('selectMateriaRegistro');
+        var chipsContainer   = document.getElementById('chipsRegistro');
+        var errorMaterias    = document.getElementById('errorMaterias');
+        var form             = document.querySelector('form');
+        var materiasPorCarrera = JSON.parse(document.getElementById('materiasPorCarreraJsonReg').textContent);
+
+        var selectedCodigos = new Set();
+
+        function topeSemestreTutor() {
+            if (rolSelect.value !== 'TUTOR') return null;
+            var opt = selectSemestre.options[selectSemestre.selectedIndex];
+            if (!opt || !opt.value) return null;
+            var n = parseInt(opt.getAttribute('data-num'), 10);
+            return isNaN(n) ? null : n;
+        }
+
+        function appendHintOption(text) {
+            var h = document.createElement('option');
+            h.value = '';
+            h.disabled = true;
+            h.textContent = text;
+            selectMateria.appendChild(h);
+        }
+
+        function refillMaterias() {
+            selectMateria.innerHTML = '';
+            var def = document.createElement('option');
+            def.value = '';
+            def.textContent = '— Seleccionar materia —';
+            selectMateria.appendChild(def);
+
+            if (rolSelect.value !== 'TUTOR') {
+                return;
+            }
+
+            var car = selectCarrera.value;
+            if (!car || !materiasPorCarrera[car]) {
+                appendHintOption('— Primero elige tu carrera arriba —');
+                return;
+            }
+
+            var tope = topeSemestreTutor();
+            if (tope == null) {
+                appendHintOption('— Primero elige tu semestre arriba —');
+                return;
+            }
+            if (tope <= 1) {
+                appendHintOption('— En 1.er semestre no puedes ofrecer materias —');
+                return;
+            }
+
+            var list = materiasPorCarrera[car].slice().filter(function (m) {
+                return m.semestre < tope;
+            }).sort(function (a, b) {
+                if (a.semestre !== b.semestre) return a.semestre - b.semestre;
+                return a.nombre.localeCompare(b.nombre);
+            });
+
+            if (list.length === 0) {
+                appendHintOption('— No hay materias de semestres anteriores para tu caso —');
+                return;
+            }
+
+            list.forEach(function (m) {
+                var opt = document.createElement('option');
+                opt.value = m.codigo;
+                opt.setAttribute('data-nombre', m.nombre);
+                opt.textContent = m.nombre + ' — ' + m.codigo;
+                selectMateria.appendChild(opt);
+            });
+        }
+
+        function clearMaterias() {
+            selectedCodigos.forEach(function (cod) {
+                var h = document.getElementById('hidden_mat_' + cod.replace(/[^a-zA-Z0-9]/g, '_'));
+                if (h) h.remove();
+            });
+            selectedCodigos.clear();
+            chipsContainer.innerHTML = '';
+            errorMaterias.classList.add('hidden');
+        }
+
+        function syncRolSemestreUi() {
+            var hint = document.getElementById('hintSemestreTutor');
+            var extra = document.getElementById('semestreLabelExtra');
+            if (rolSelect.value === 'TUTOR') {
+                extra.textContent = '(obligatorio)';
+                hint.classList.remove('hidden');
+            } else {
+                extra.textContent = '';
+                hint.classList.add('hidden');
+            }
+        }
+
+        rolSelect.addEventListener('change', function () {
+            if (this.value === 'TUTOR') {
+                seccionMaterias.classList.remove('hidden');
+                syncRolSemestreUi();
+                refillMaterias();
+            } else {
+                seccionMaterias.classList.add('hidden');
+                clearMaterias();
+                syncRolSemestreUi();
+            }
+        });
+
+        selectSemestre.addEventListener('change', function () {
+            if (rolSelect.value === 'TUTOR') {
+                clearMaterias();
+                refillMaterias();
+            }
+        });
+
+        selectCarrera.addEventListener('change', function () {
+            if (rolSelect.value === 'TUTOR') {
+                clearMaterias();
+                refillMaterias();
+            }
+        });
+
+        selectMateria.addEventListener('change', function () {
+            var opt = this.options[this.selectedIndex];
+            var cod = opt.value;
+            var nombre = opt.getAttribute('data-nombre');
+            this.value = '';
+            if (!cod || selectedCodigos.has(cod)) return;
+            selectedCodigos.add(cod);
+            errorMaterias.classList.add('hidden');
+
+            var chip = document.createElement('span');
+            chip.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold text-white';
+            chip.style.backgroundColor = '#56C7E6';
+
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'materias';
+            hidden.value = cod;
+            hidden.id = 'hidden_mat_' + cod.replace(/[^a-zA-Z0-9]/g, '_');
+
+            var label = document.createElement('span');
+            label.textContent = nombre || cod;
+
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ml-1 text-white/80 hover:text-white font-bold leading-none';
+            btn.textContent = '\u00d7';
+            btn.addEventListener('click', function () {
+                selectedCodigos.delete(cod);
+                chip.remove();
+                var h = document.getElementById('hidden_mat_' + cod.replace(/[^a-zA-Z0-9]/g, '_'));
+                if (h) h.remove();
+            });
+
+            chip.appendChild(label);
+            chip.appendChild(btn);
+            chipsContainer.appendChild(chip);
+            form.appendChild(hidden);
+        });
+
+        form.addEventListener('submit', function (e) {
+            if (rolSelect.value === 'TUTOR') {
+                if (!selectSemestre.value) {
+                    e.preventDefault();
+                    document.getElementById('errorMateriasMsg').textContent = 'Selecciona tu semestre.';
+                    errorMaterias.classList.remove('hidden');
+                    selectSemestre.focus();
+                    return;
+                }
+                var tn = topeSemestreTutor();
+                if (tn !== null && tn <= 1) {
+                    e.preventDefault();
+                    document.getElementById('errorMateriasMsg').textContent =
+                        'En primer semestre no puedes ofrecer materias como tutor; elige otro semestre o regístrate como estudiante.';
+                    errorMaterias.classList.remove('hidden');
+                    selectSemestre.focus();
+                    return;
+                }
+                if (!selectCarrera.value) {
+                    e.preventDefault();
+                    document.getElementById('errorMateriasMsg').textContent = 'Selecciona tu carrera.';
+                    errorMaterias.classList.remove('hidden');
+                    selectCarrera.focus();
+                    return;
+                }
+                if (selectedCodigos.size === 0) {
+                    e.preventDefault();
+                    document.getElementById('errorMateriasMsg').textContent = 'Debes seleccionar al menos una materia.';
+                    errorMaterias.classList.remove('hidden');
+                    seccionMaterias.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    })();
+</script>
 </body>
 </html>
 
