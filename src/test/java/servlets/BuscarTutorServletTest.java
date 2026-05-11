@@ -7,8 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import schemas.Tutor;
 import schemas.TutorListadoDTO;
+import schemas.TutorListadoMapper;
 
-import java.lang.reflect.Method;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +30,7 @@ class BuscarTutorServletTest {
      */
     @Test
     @DisplayName("PRUEBA 1: Conversión Tutor → TutorListadoDTO")
-    void toDto_deberiaConvertirTutorCompleto() throws Exception {
+    void toDto_deberiaConvertirTutorCompleto() {
         // Arrange - Tutor con todos los campos y bio > 140 chars
         Tutor tutor = Tutor.builder()
                 .id(1L)
@@ -43,7 +43,7 @@ class BuscarTutorServletTest {
                 .build();
 
         // Act
-        TutorListadoDTO dto = invocarToDto(tutor);
+        TutorListadoDTO dto = TutorListadoMapper.toDto(tutor);
 
         // Assert
         assertEquals(1L, dto.getIdTutor(),
@@ -67,12 +67,12 @@ class BuscarTutorServletTest {
      */
     @Test
     @DisplayName("PRUEBA 2: Construcción de nombre completo")
-    void joinNombreParts_deberiaUnirPartesCorrectamente() throws Exception {
+    void joinNombreParts_deberiaUnirPartesCorrectamente() {
         // Act - cuatro combinaciones distintas
-        String resultado1 = invocarJoinNombreParts("Juan", "Carlos", "Pérez", "López");
-        String resultado2 = invocarJoinNombreParts("María", null, "García", "");
-        String resultado3 = invocarJoinNombreParts(null, null, null, null);
-        String resultado4 = invocarJoinNombreParts("  Ana María  ", "   ", "Rodríguez");
+        String resultado1 = TutorListadoMapper.joinNombreParts("Juan", "Carlos", "Pérez", "López");
+        String resultado2 = TutorListadoMapper.joinNombreParts("María", null, "García", "");
+        String resultado3 = TutorListadoMapper.joinNombreParts(null, null, null, null);
+        String resultado4 = TutorListadoMapper.joinNombreParts("  Ana María  ", "   ", "Rodríguez");
 
         // Assert
         assertEquals("Juan Carlos Pérez López", resultado1,
@@ -95,7 +95,7 @@ class BuscarTutorServletTest {
      */
     @Test
     @DisplayName("PRUEBA 3: Truncamiento de biografía a 140 caracteres")
-    void toDto_deberiaTruncarBiografiaA140Caracteres() throws Exception {
+    void toDto_deberiaTruncarBiografiaA140Caracteres() {
         // Arrange - bio de 150 'A'
         String bioOriginal = "A".repeat(150);
         Tutor tutor = Tutor.builder()
@@ -106,10 +106,10 @@ class BuscarTutorServletTest {
                 .build();
 
         // Act
-        TutorListadoDTO dto = invocarToDto(tutor);
+        TutorListadoDTO dto = TutorListadoMapper.toDto(tutor);
 
         // Assert
-        // La lógica en BuscarTutorServlet hace: bio.substring(0, BIO_MAX-1) + "…"
+        // La lógica en TutorListadoMapper hace: bio.substring(0, BIO_MAX-1) + "…"
         // → 139 chars de 'A' + "…" = 140 chars totales
         assertEquals(140, dto.getBioCorta().length(),
                 "La bio truncada debe tener exactamente 140 caracteres");
@@ -161,21 +161,4 @@ class BuscarTutorServletTest {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers de reflexión
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /** Invoca el método privado estático BuscarTutorServlet#toDto(Tutor) */
-    private TutorListadoDTO invocarToDto(Tutor tutor) throws Exception {
-        Method method = BuscarTutorServlet.class.getDeclaredMethod("toDto", Tutor.class);
-        method.setAccessible(true);
-        return (TutorListadoDTO) method.invoke(null, tutor);
-    }
-
-    /** Invoca el método privado estático BuscarTutorServlet#joinNombreParts(String...) */
-    private String invocarJoinNombreParts(String... parts) throws Exception {
-        Method method = BuscarTutorServlet.class.getDeclaredMethod("joinNombreParts", String[].class);
-        method.setAccessible(true);
-        return (String) method.invoke(null, (Object) parts);
-    }
 }

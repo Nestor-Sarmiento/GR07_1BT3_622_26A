@@ -14,19 +14,16 @@ import repositories.JpaUtil;
 import schemas.Estudiante;
 import schemas.Tutor;
 import schemas.TutorListadoDTO;
+import schemas.TutorListadoMapper;
 import schemas.Usuario;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @WebServlet(name = "buscarTutorServlet", urlPatterns = "/estudiante/buscar-tutor")
 public class BuscarTutorServlet extends HttpServlet {
-
-    private static final int BIO_MAX = 140;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -62,7 +59,7 @@ public class BuscarTutorServlet extends HttpServlet {
                             .getResultList();
                     encontrados.sort(Comparator.comparing(Tutor::getNombre, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
                     for (Tutor t : encontrados) {
-                        tutoresResultado.add(toDto(t));
+                        tutoresResultado.add(TutorListadoMapper.toDto(t));
                     }
                 }
             } catch (IllegalArgumentException e) {
@@ -73,41 +70,5 @@ public class BuscarTutorServlet extends HttpServlet {
         req.setAttribute("tutoresResultado", tutoresResultado);
         req.setAttribute("materias", MateriaFIS.values());
         req.getRequestDispatcher("/WEB-INF/jsp/estudiante/buscar-tutor.jsp").forward(req, resp);
-    }
-
-    private static TutorListadoDTO toDto(Tutor t) {
-        String nombre = joinNombreParts(t.getNombre(), t.getSegundoNombre(), t.getApellido(), t.getSegundoApellido());
-        String bio = t.getDescripcionProfesional();
-        if (bio != null) {
-            bio = bio.trim();
-            if (bio.length() > BIO_MAX) {
-                bio = bio.substring(0, BIO_MAX - 1) + "…";
-            }
-        }
-        if (bio == null || bio.isEmpty()) {
-            bio = "Tutor académico";
-        }
-        List<String> tags = t.getMateriasRelacionadas() == null ? List.of()
-                : t.getMateriasRelacionadas().stream()
-                .sorted(Comparator.comparing(MateriaFIS::getNombre))
-                .map(MateriaFIS::getNombre)
-                .collect(Collectors.toList());
-        return TutorListadoDTO.builder()
-                .idTutor(t.getId())
-                .nombreMostrar(nombre.isEmpty() ? "Tutor" : nombre)
-                .bioCorta(bio)
-                .materiasEtiquetas(tags)
-                .build();
-    }
-
-    private static String joinNombreParts(String... parts) {
-        if (parts == null) {
-            return "";
-        }
-        return java.util.Arrays.stream(parts)
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.joining(" "));
     }
 }
