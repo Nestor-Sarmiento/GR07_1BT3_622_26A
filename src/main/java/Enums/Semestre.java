@@ -20,4 +20,9 @@ public enum Semestre {
     public String getNombre() {
         return nombre;
     }
+
+    /** Ordinal académico: 1 = primer semestre, …, 9 = noveno. */
+    public int getNumero() {
+        return ordinal() + 1;
+    }
 }

@@ -190,6 +190,41 @@
                 </form>
             </section>
 
+            <%-- ── Semestre académico (define el tope de materias que puede dar) ── --%>
+            <section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-2 mb-6 text-primary">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                    <h3 class="text-xl font-bold">Semestre que cursas</h3>
+                </div>
+                <p class="text-sm text-on-surface-variant mb-4 max-w-xl">
+                    Solo puedes registrar como tutorías las asignaturas de <strong>semestres anteriores</strong> al que cursas
+                    (ej. si estás en 5.º, hasta 4.º).
+                </p>
+                <form action="${pageContext.request.contextPath}/tutor/perfil" method="post" class="max-w-xl flex flex-col sm:flex-row gap-3 items-end">
+                    <input type="hidden" name="accion" value="semestre"/>
+                    <div class="flex-1 w-full">
+                        <label class="block text-sm font-semibold text-on-surface-variant mb-2" for="selectSemestrePerfil">Semestre actual</label>
+                        <select id="selectSemestrePerfil" name="semestre" required
+                                class="w-full bg-surface-container-high border-none rounded-lg p-4 text-on-surface
+                                       focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none">
+                            <option value="">— Selecciona —</option>
+                            <c:forEach var="sem" items="${semestres}">
+                                <option value="${sem.name()}"
+                                    <c:if test="${not empty requestScope.tutorPerfil.semestre and requestScope.tutorPerfil.semestre == sem}">selected="selected"</c:if>>
+                                    <c:out value="${sem.nombre}"/>
+                                </option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <button type="submit"
+                            class="shrink-0 flex items-center gap-2 bg-secondary-container text-on-secondary-container font-semibold
+                                   px-6 py-3 rounded-lg hover:opacity-90 transition-all shadow-sm whitespace-nowrap">
+                        <span class="material-symbols-outlined text-lg">save</span>
+                        Guardar semestre
+                    </button>
+                </form>
+            </section>
+
             <%-- ── Sección 3: Carrera y materias relacionadas (por plan FIS) ── --%>
             <section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10 shadow-sm">
                 <div class="flex items-center gap-2 mb-6 text-primary">
@@ -216,7 +251,9 @@
                             expand_more
                         </span>
                     </div>
-                    <p class="text-xs text-on-surface-variant mb-4">Las materias disponibles dependen de la carrera seleccionada.</p>
+                    <p class="text-xs text-on-surface-variant mb-4">
+                        Las materias dependen de tu <strong>carrera</strong> y del <strong>semestre</strong> guardado arriba (solo niveles ya cursados).
+                    </p>
 
                     <%-- Chips de materias seleccionadas --%>
                     <div id="chipsContainer" class="flex flex-wrap gap-3 mb-5 min-h-[2.5rem]">
@@ -302,6 +339,7 @@
 </c:choose>
 
 <script>
+    const tutorSemestreTopeExclusivo = <c:choose><c:when test="${not empty requestScope.tutorPerfil.semestre}">${requestScope.tutorPerfil.semestre.numero}</c:when><c:otherwise>null</c:otherwise></c:choose>;
     const materiasPorCarrera = JSON.parse(document.getElementById('materiasPorCarreraJson').textContent);
     const selectCarrera = document.getElementById('selectCarreraPerfil');
     const selectMateria = document.getElementById('selectMateria');
@@ -312,13 +350,38 @@
         return 'chip-' + codigo.replace(/[^a-zA-Z0-9]/g, '_');
     }
 
+    function hintOpt(text) {
+        const h = document.createElement('option');
+        h.value = '';
+        h.disabled = true;
+        h.textContent = text;
+        selectMateria.appendChild(h);
+    }
+
     function refillMateriaSelect(carreraName) {
         selectMateria.innerHTML = '<option value="">— Seleccionar materia —</option>';
-        if (!carreraName || !materiasPorCarrera[carreraName]) return;
-        const list = materiasPorCarrera[carreraName].slice().sort(function (a, b) {
+        if (!carreraName || !materiasPorCarrera[carreraName]) {
+            hintOpt('— Primero elige tu carrera arriba —');
+            return;
+        }
+        if (tutorSemestreTopeExclusivo == null) {
+            hintOpt('— Primero guarda tu semestre en la sección anterior —');
+            return;
+        }
+        if (tutorSemestreTopeExclusivo <= 1) {
+            hintOpt('— En 1.er semestre no puedes ofrecer materias —');
+            return;
+        }
+        const list = materiasPorCarrera[carreraName].slice().filter(function (m) {
+            return m.semestre < tutorSemestreTopeExclusivo;
+        }).sort(function (a, b) {
             if (a.semestre !== b.semestre) return a.semestre - b.semestre;
             return a.nombre.localeCompare(b.nombre);
         });
+        if (list.length === 0) {
+            hintOpt('— No hay materias de semestres anteriores —');
+            return;
+        }
         list.forEach(function (m) {
             const opt = document.createElement('option');
             opt.value = m.codigo;
@@ -386,6 +449,10 @@
     })();
 
     function guardarMaterias() {
+        if (tutorSemestreTopeExclusivo === null) {
+            alert('Primero guarda tu semestre en la sección anterior para filtrar las materias que puedes dar.');
+            return;
+        }
         document.getElementById('inputMateriasPayload').value = Array.from(selectedMaterias).join(',');
         document.getElementById('inputCarreraPayload').value = selectCarrera.value || '';
         document.getElementById('formMaterias').submit();

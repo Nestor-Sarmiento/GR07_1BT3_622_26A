@@ -3,6 +3,7 @@ package Enums;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MateriasCatalogoLegacyTest {
@@ -20,5 +21,24 @@ class MateriasCatalogoLegacyTest {
     @Test
     void desconocidoVacio() {
         assertTrue(MateriasCatalogo.codigoPorNombreConstanteLegacy("NO_EXISTE").isEmpty());
+    }
+
+    @Test
+    void tutorQuintoSoloMateriasHastaCuartoSemestre() {
+        var ops = MateriasCatalogo.porCarreraParaTutor(Carrera.SOFTWARE, Semestre.QUINTO_SEMESTRE);
+        assertTrue(ops.stream().allMatch(o -> o.getSemestre() < 5));
+        assertTrue(ops.stream().anyMatch(o -> o.getSemestre() == 4));
+        assertTrue(ops.stream().noneMatch(o -> o.getSemestre() >= 5));
+    }
+
+    @Test
+    void tutorPrimerSemestreSinMateriasEnCatalogo() {
+        assertTrue(MateriasCatalogo.porCarreraParaTutor(Carrera.SOFTWARE, Semestre.PRIMER_SEMESTRE).isEmpty());
+    }
+
+    @Test
+    void codigoPermitidoParaTutorRespetaTope() {
+        assertTrue(MateriasCatalogo.codigoPermitidoParaTutor(Carrera.SOFTWARE, Semestre.SEXTO_SEMESTRE, "ICCD244"));
+        assertFalse(MateriasCatalogo.codigoPermitidoParaTutor(Carrera.SOFTWARE, Semestre.SEGUNDO_SEMESTRE, "ISWD523"));
     }
 }

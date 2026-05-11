@@ -2,6 +2,7 @@ package schemas;
 
 import Enums.Carrera;
 import Enums.Estados;
+import Enums.Semestre;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -52,6 +53,11 @@ public class Tutor {
     @Enumerated(EnumType.STRING)
     @Column(name = "carrera")
     private Carrera carrera;
+
+    /** Semestre en que cursa; solo puede ofrecer asignaturas de semestres anteriores. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "semestre")
+    private Semestre semestre;
 
     /**
      * Códigos SIGLA de asignaturas (ej. ICCD244), según {@link #carrera}.

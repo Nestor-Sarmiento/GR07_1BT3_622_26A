@@ -90,6 +90,17 @@ public class RegistroServlet extends HttpServlet {
                     req.getRequestDispatcher("/registro.jsp").forward(req, resp);
                     return;
                 }
+                if (semestre == null) {
+                    req.setAttribute("error", "Como tutor debes indicar el semestre en que cursas.");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
+                if (semestre.getNumero() <= 1) {
+                    req.setAttribute("error",
+                            "En primer semestre no puedes ofrecer tutorías de la malla (solo niveles inferiores al tuyo).");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
+                }
                 String[] materiasParam = req.getParameterValues("materias");
                 Set<String> codigos = new HashSet<>();
                 if (materiasParam != null) {
@@ -98,7 +109,7 @@ public class RegistroServlet extends HttpServlet {
                             continue;
                         }
                         boolean ok = false;
-                        for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarrera(carreraRegistro)) {
+                        for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarreraParaTutor(carreraRegistro, semestre)) {
                             if (op.getCodigo().equalsIgnoreCase(m.trim())) {
                                 codigos.add(op.getCodigo());
                                 ok = true;
@@ -106,7 +117,8 @@ public class RegistroServlet extends HttpServlet {
                             }
                         }
                         if (!ok) {
-                            req.setAttribute("error", "Una o más materias no corresponden a la carrera seleccionada.");
+                            req.setAttribute("error",
+                                    "Una o más materias no son válidas para tu carrera y semestre (solo semestres anteriores al tuyo).");
                             req.getRequestDispatcher("/registro.jsp").forward(req, resp);
                             return;
                         }
@@ -124,6 +136,7 @@ public class RegistroServlet extends HttpServlet {
                         .segundoApellido(segundoApellido)
                         .estado(Estados.ACTIVO)
                         .carrera(carreraRegistro)
+                        .semestre(semestre)
                         .codigosMateriaRelacionadas(codigos)
                         .build();
                 savePersona(tutor);

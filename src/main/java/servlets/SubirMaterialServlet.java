@@ -4,6 +4,7 @@ import Enums.CategoriaMaterial;
 import Enums.EstadoMaterial;
 import Enums.MateriasCatalogo;
 import Enums.Rol;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import schemas.Material;
 import schemas.Usuario;
+import repositories.JpaUtil;
 import repositories.MaterialRepository;
 import servlets.validators.ArchivoMaterialValidator;
 
@@ -42,12 +44,13 @@ public class SubirMaterialServlet extends HttpServlet {
 
     private static void prepararMateriasYPerfil(HttpServletRequest req, Usuario u) {
         if (u != null && u.getIdPersona() != null) {
-            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            EntityManager em = JpaUtil.createEntityManager();
             try {
                 schemas.Tutor tutorPerfil = em.find(schemas.Tutor.class, u.getIdPersona());
                 req.setAttribute("tutorPerfil", tutorPerfil);
                 if (tutorPerfil != null && tutorPerfil.getCarrera() != null) {
-                    req.setAttribute("materiasOpciones", MateriasCatalogo.porCarrera(tutorPerfil.getCarrera()));
+                    req.setAttribute("materiasOpciones",
+                            MateriasCatalogo.porCarreraParaTutor(tutorPerfil.getCarrera(), tutorPerfil.getSemestre()));
                 } else {
                     req.setAttribute("materiasOpciones", MateriasCatalogo.todasOpcionesBusqueda());
                 }
@@ -111,15 +114,26 @@ public class SubirMaterialServlet extends HttpServlet {
         Usuario u = (Usuario) session.getAttribute("usuarioLogueado");
         String nombreUsuario = "Tutor";
 
+        schemas.Tutor tutorRef = null;
         if (u.getIdPersona() != null) {
-            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            EntityManager em = JpaUtil.createEntityManager();
             try {
-                schemas.Tutor tutor = em.find(schemas.Tutor.class, u.getIdPersona());
-                if (tutor != null && tutor.getNombre() != null) {
-                    nombreUsuario = tutor.getNombre();
+                tutorRef = em.find(schemas.Tutor.class, u.getIdPersona());
+                if (tutorRef != null && tutorRef.getNombre() != null) {
+                    nombreUsuario = tutorRef.getNombre();
                 }
             } finally {
                 em.close();
+            }
+        }
+
+        if (tutorRef != null && tutorRef.getCarrera() != null && !materiaCodigo.isBlank()) {
+            if (!MateriasCatalogo.codigoPermitidoParaTutor(tutorRef.getCarrera(), tutorRef.getSemestre(), materiaCodigo)) {
+                req.setAttribute("error", "La materia no corresponde a tu carrera y semestre (solo niveles ya cursados).");
+                req.setAttribute("categorias", CategoriaMaterial.values());
+                prepararMateriasYPerfil(req, u);
+                req.getRequestDispatcher(VIEW).forward(req, resp);
+                return;
             }
         }
 

@@ -3,6 +3,7 @@ package servlets;
 import Enums.Carrera;
 import Enums.MateriasCatalogo;
 import Enums.Rol;
+import Enums.Semestre;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.servlet.ServletException;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @WebServlet(name = "perfilTutorServlet", urlPatterns = "/tutor/perfil")
@@ -58,6 +60,7 @@ public class PerfilTutorServlet extends HttpServlet {
         }
 
         req.setAttribute("carreras", Carrera.values());
+        req.setAttribute("semestres", Semestre.values());
         req.setAttribute("materiasPorCarreraJson", MateriasCatalogo.toJsonPorCarrera());
         req.getRequestDispatcher("/WEB-INF/jsp/tutor/perfil-tutor.jsp").forward(req, resp);
     }
@@ -106,7 +109,36 @@ public class PerfilTutorServlet extends HttpServlet {
                 }
 
                 switch (accion) {
+                    case "semestre" -> {
+                        String semStr = ServletUtils.value(req.getParameter("semestre"));
+                        if (semStr.isBlank()) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error=" + url("Selecciona tu semestre."));
+                            return;
+                        }
+                        Semestre sem = Semestre.valueOf(semStr);
+                        tutor.setSemestre(sem);
+                        Set<String> filtradas = new HashSet<>();
+                        Carrera carActual = tutor.getCarrera();
+                        if (tutor.getCodigosMateriaRelacionadas() != null && carActual != null) {
+                            for (String cod : tutor.getCodigosMateriaRelacionadas()) {
+                                Optional<MateriasCatalogo.Opcion> canon = MateriasCatalogo
+                                        .porCarreraParaTutor(carActual, sem).stream()
+                                        .filter(o -> o.getCodigo().equalsIgnoreCase(cod))
+                                        .findFirst();
+                                canon.ifPresent(o -> filtradas.add(o.getCodigo()));
+                            }
+                        }
+                        tutor.setCodigosMateriaRelacionadas(filtradas);
+                        em.merge(tutor);
+                    }
                     case "materias" -> {
+                        if (tutor.getSemestre() == null) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error="
+                                    + url("Primero guarda el semestre que cursas."));
+                            return;
+                        }
                         String carreraStr = ServletUtils.value(req.getParameter("carrera"));
                         if (carreraStr.isBlank()) {
                             tx.rollback();
@@ -114,6 +146,7 @@ public class PerfilTutorServlet extends HttpServlet {
                             return;
                         }
                         Carrera car = Carrera.valueOf(carreraStr);
+                        Semestre semTutor = tutor.getSemestre();
                         String raw = req.getParameter("materias");
                         Set<String> nuevas = new HashSet<>();
                         if (raw != null && !raw.isBlank()) {
@@ -123,7 +156,7 @@ public class PerfilTutorServlet extends HttpServlet {
                                     continue;
                                 }
                                 boolean ok = false;
-                                for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarrera(car)) {
+                                for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarreraParaTutor(car, semTutor)) {
                                     if (op.getCodigo().equalsIgnoreCase(p)) {
                                         nuevas.add(op.getCodigo());
                                         ok = true;
@@ -133,7 +166,8 @@ public class PerfilTutorServlet extends HttpServlet {
                                 if (!ok) {
                                     tx.rollback();
                                     resp.sendRedirect(redirectBase + "?error="
-                                            + url("Una o más materias no corresponden a la carrera seleccionada."));
+                                            + url("Una o más materias no son válidas para tu carrera y semestre "
+                                                    + "(solo asignaturas de semestres anteriores al tuyo)."));
                                     return;
                                 }
                             }
@@ -176,6 +210,7 @@ public class PerfilTutorServlet extends HttpServlet {
         }
 
         String okMsg = switch (accion) {
+            case "semestre" -> "Semestre actualizado. Se ajustaron las materias a las permitidas.";
             case "materias" -> "Materias relacionadas guardadas.";
             case "bio" -> "Descripción profesional guardada.";
             case "nombre" -> "Nombre actualizado.";

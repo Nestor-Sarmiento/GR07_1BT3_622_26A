@@ -47,6 +47,30 @@ public final class MateriasCatalogo {
         }
     }
 
+    /**
+     * Asignaturas que un tutor puede ofrecer: solo las de semestres estrictamente menores al semestre
+     * en que cursa (ej. 5º semestre → puede dar 1–4). Si {@code semestreTutor} es null (datos viejos),
+     * no se aplica tope (compatibilidad).
+     */
+    public static List<Opcion> porCarreraParaTutor(Carrera carrera, Semestre semestreTutor) {
+        if (carrera == null) {
+            return List.of();
+        }
+        int topeExclusivo = semestreTutor == null ? Integer.MAX_VALUE : semestreTutor.getNumero();
+        return porCarrera(carrera).stream()
+                .filter(o -> o.getSemestre() < topeExclusivo)
+                .toList();
+    }
+
+    public static boolean codigoPermitidoParaTutor(Carrera carrera, Semestre semestreTutor, String codigo) {
+        if (codigo == null || codigo.isBlank() || carrera == null) {
+            return false;
+        }
+        String norm = codigo.trim();
+        return porCarreraParaTutor(carrera, semestreTutor).stream()
+                .anyMatch(o -> o.getCodigo().equalsIgnoreCase(norm));
+    }
+
     public static List<Opcion> porCarrera(Carrera c) {
         if (c == null) {
             return List.of();
