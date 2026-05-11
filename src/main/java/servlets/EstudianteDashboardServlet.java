@@ -1,18 +1,18 @@
 package servlets;
 
-import Enums.Rol;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import schemas.Usuario;
 import schemas.Estudiante;
+import schemas.Usuario;
 import repositories.JpaUtil;
 import jakarta.persistence.EntityManager;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @WebServlet(name = "estudianteDashboardServlet", urlPatterns = "/estudiante/dashboard")
 public class EstudianteDashboardServlet extends HttpServlet {
@@ -20,11 +20,12 @@ public class EstudianteDashboardServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        if (session == null || !(session.getAttribute("usuarioLogueado") instanceof Usuario usuario)
-                || usuario.getRol() != Rol.ESTUDIANTE) {
+        Optional<Usuario> usuarioOpt = ServletUtils.estudianteDesdeSesion(session);
+        if (usuarioOpt.isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
+        Usuario usuario = usuarioOpt.get();
 
         if (usuario.getIdPersona() != null) {
             try (EntityManager em = JpaUtil.createEntityManager()) {
