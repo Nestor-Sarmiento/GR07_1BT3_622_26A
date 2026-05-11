@@ -27,6 +27,14 @@ import java.util.Optional;
 @WebServlet(name = "estudiantePerfilTutorServlet", urlPatterns = "/estudiante/tutor/perfil")
 public class EstudiantePerfilTutorServlet extends HttpServlet {
 
+    /**
+     * Hook para pruebas unitarias: sobreescribir este método permite
+     * inyectar un EntityManager mockeado sin cambiar la lógica de negocio.
+     */
+    protected EntityManager buildEntityManager() {
+        return JpaUtil.createEntityManager();
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
@@ -50,7 +58,7 @@ public class EstudiantePerfilTutorServlet extends HttpServlet {
             return;
         }
 
-        try (EntityManager em = JpaUtil.createEntityManager()) {
+        try (EntityManager em =  buildEntityManager()) {
             Tutor tutor = em.find(Tutor.class, idTutor);
             if (tutor == null) {
                 resp.sendRedirect(req.getContextPath() + "/estudiante/buscar-tutor");
