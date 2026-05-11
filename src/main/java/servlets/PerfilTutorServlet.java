@@ -1,7 +1,9 @@
 package servlets;
 
-import Enums.MateriaFIS;
+import Enums.Carrera;
+import Enums.MateriasCatalogo;
 import Enums.Rol;
+import Enums.Semestre;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.servlet.ServletException;
@@ -17,7 +19,10 @@ import schemas.Usuario;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @WebServlet(name = "perfilTutorServlet", urlPatterns = "/tutor/perfil")
@@ -30,6 +35,14 @@ public class PerfilTutorServlet extends HttpServlet {
                 || usuario.getRol() != Rol.TUTOR) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
+        }
+
+        try (EntityManager emFresh = JpaUtil.createEntityManager()) {
+            Usuario desdeBd = emFresh.find(Usuario.class, usuario.getId_usuario());
+            if (desdeBd != null && desdeBd.getRol() == Rol.TUTOR) {
+                session.setAttribute("usuarioLogueado", desdeBd);
+                usuario = desdeBd;
+            }
         }
 
         String mensaje = ServletUtils.value(req.getParameter("mensaje"));
@@ -48,21 +61,43 @@ public class PerfilTutorServlet extends HttpServlet {
             }
         }
 
-        req.setAttribute("materias", MateriaFIS.values());
+        req.setAttribute("carreras", Carrera.values());
+        req.setAttribute("semestres", Semestre.values());
+        req.setAttribute("materiasPorCarreraJson", MateriasCatalogo.toJsonPorCarrera());
         req.getRequestDispatcher("/WEB-INF/jsp/tutor/perfil-tutor.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
-        if (session == null || !(session.getAttribute("usuarioLogueado") instanceof Usuario usuario)
-                || usuario.getRol() != Rol.TUTOR || usuario.getIdPersona() == null) {
+        if (session == null || !(session.getAttribute("usuarioLogueado") instanceof Usuario sesionUser)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        if (sesionUser.getRol() != Rol.TUTOR) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
-        String accion = ServletUtils.value(req.getParameter("accion"));
         String redirectBase = req.getContextPath() + "/tutor/perfil";
+
+        /* Sesión puede estar desactualizada respecto a la BD (p. ej. id_persona asignado después del login). */
+        Usuario usuario;
+        try (EntityManager emReload = JpaUtil.createEntityManager()) {
+            usuario = emReload.find(Usuario.class, sesionUser.getId_usuario());
+        }
+        if (usuario == null || usuario.getRol() != Rol.TUTOR) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        if (usuario.getIdPersona() == null) {
+            resp.sendRedirect(redirectBase + "?error="
+                    + url("Tu cuenta no tiene un perfil de tutor vinculado (id persona). Contacta al administrador."));
+            return;
+        }
+        session.setAttribute("usuarioLogueado", usuario);
+
+        String accion = ServletUtils.value(req.getParameter("accion"));
 
         try (EntityManager em = JpaUtil.createEntityManager()) {
             EntityTransaction tx = em.getTransaction();
@@ -76,19 +111,60 @@ public class PerfilTutorServlet extends HttpServlet {
                 }
 
                 switch (accion) {
-                    case "materias" -> {
-                        String raw = req.getParameter("materias");
-                        Set<MateriaFIS> nuevas = new HashSet<>();
-                        if (raw != null && !raw.isBlank()) {
-                            for (String part : raw.split(",")) {
-                                String p = part.trim();
-                                if (p.isEmpty()) {
-                                    continue;
-                                }
-                                nuevas.add(MateriaFIS.valueOf(p));
+                    case "semestre" -> {
+                        String semStr = ServletUtils.value(req.getParameter("semestre"));
+                        if (semStr.isBlank()) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error=" + url("Selecciona tu semestre."));
+                            return;
+                        }
+                        Semestre sem = Semestre.valueOf(semStr);
+                        tutor.setSemestre(sem);
+                        Set<String> filtradas = new HashSet<>();
+                        Carrera carActual = tutor.getCarrera();
+                        if (tutor.getCodigosMateriaRelacionadas() != null && carActual != null) {
+                            for (String cod : tutor.getCodigosMateriaRelacionadas()) {
+                                Optional<MateriasCatalogo.Opcion> canon = MateriasCatalogo
+                                        .porCarreraParaTutor(carActual, sem).stream()
+                                        .filter(o -> o.getCodigo().equalsIgnoreCase(cod))
+                                        .findFirst();
+                                canon.ifPresent(o -> filtradas.add(o.getCodigo()));
                             }
                         }
-                        tutor.setMateriasRelacionadas(nuevas);
+                        tutor.setCodigosMateriaRelacionadas(filtradas);
+                        em.merge(tutor);
+                    }
+                    case "materias" -> {
+                        if (tutor.getSemestre() == null) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error="
+                                    + url("Primero guarda el semestre que cursas."));
+                            return;
+                        }
+                        String carreraStr = ServletUtils.value(req.getParameter("carrera"));
+                        if (carreraStr.isBlank()) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error=" + url("Selecciona tu carrera."));
+                            return;
+                        }
+                        Carrera car = Carrera.valueOf(carreraStr);
+                        Semestre semTutor = tutor.getSemestre();
+                        String raw = req.getParameter("materias");
+                        Iterable<String> tokens = (raw == null || raw.isBlank())
+                                ? List.of()
+                                : Arrays.asList(raw.split(","));
+                        Optional<Set<String>> nuevasOpt =
+                                MateriasCatalogo.normalizarCodigosParaTutor(car, semTutor, tokens);
+                        if (nuevasOpt.isEmpty()) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error="
+                                    + url("Una o más materias no son válidas para tu carrera y semestre "
+                                            + "(solo asignaturas de semestres anteriores al tuyo)."));
+                            return;
+                        }
+                        Set<String> nuevas = nuevasOpt.get();
+                        tutor.setCarrera(car);
+                        tutor.setCodigosMateriaRelacionadas(nuevas);
                         em.merge(tutor);
                     }
                     case "bio" -> {
@@ -125,6 +201,7 @@ public class PerfilTutorServlet extends HttpServlet {
         }
 
         String okMsg = switch (accion) {
+            case "semestre" -> "Semestre actualizado. Se ajustaron las materias a las permitidas.";
             case "materias" -> "Materias relacionadas guardadas.";
             case "bio" -> "Descripción profesional guardada.";
             case "nombre" -> "Nombre actualizado.";

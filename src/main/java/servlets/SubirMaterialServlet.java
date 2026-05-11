@@ -1,9 +1,10 @@
 package servlets;
 
-import Enums.Rol;
 import Enums.CategoriaMaterial;
-import Enums.MateriaFIS;
 import Enums.EstadoMaterial;
+import Enums.MateriasCatalogo;
+import Enums.Rol;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import schemas.Material;
 import schemas.Usuario;
+import repositories.JpaUtil;
 import repositories.MaterialRepository;
 import servlets.validators.ArchivoMaterialValidator;
 
@@ -34,37 +36,49 @@ public class SubirMaterialServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         Usuario u = (Usuario) session.getAttribute("usuarioLogueado");
+        prepararMateriasYPerfil(req, u);
+
+        req.setAttribute("categorias", CategoriaMaterial.values());
+        req.getRequestDispatcher(VIEW).forward(req, resp);
+    }
+
+    private static void prepararMateriasYPerfil(HttpServletRequest req, Usuario u) {
         if (u != null && u.getIdPersona() != null) {
-            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            EntityManager em = JpaUtil.createEntityManager();
             try {
                 schemas.Tutor tutorPerfil = em.find(schemas.Tutor.class, u.getIdPersona());
                 req.setAttribute("tutorPerfil", tutorPerfil);
+                if (tutorPerfil != null && tutorPerfil.getCarrera() != null) {
+                    req.setAttribute("materiasOpciones",
+                            MateriasCatalogo.porCarreraParaTutor(tutorPerfil.getCarrera(), tutorPerfil.getSemestre()));
+                } else {
+                    req.setAttribute("materiasOpciones", MateriasCatalogo.todasOpcionesBusqueda());
+                }
             } finally {
                 em.close();
             }
+        } else {
+            req.setAttribute("materiasOpciones", MateriasCatalogo.todasOpcionesBusqueda());
         }
-
-        req.setAttribute("categorias", CategoriaMaterial.values());
-        req.setAttribute("materias", MateriaFIS.values());
-        req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("usuarioLogueado") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
+        if (!esTutor(req, resp)) {
             return;
         }
+        HttpSession session = req.getSession(false);
 
         String titulo = req.getParameter("titulo");
         String descripcion = req.getParameter("descripcion");
         String categoria = req.getParameter("nombreMateria");
+        String materiaCodigo = ServletUtils.value(req.getParameter("materia"));
         String precioStr = req.getParameter("costo");
         Part archivoPart = req.getPart("archivo");
         if (titulo == null || titulo.isBlank()) {
             req.setAttribute("error", "El título es obligatorio.");
             req.setAttribute("categorias", CategoriaMaterial.values());
+            prepararMateriasYPerfil(req, (Usuario) session.getAttribute("usuarioLogueado"));
             req.getRequestDispatcher(VIEW).forward(req, resp);
             return;
         }
@@ -75,6 +89,7 @@ public class SubirMaterialServlet extends HttpServlet {
         if (!ArchivoMaterialValidator.esExtensionPermitida(extension)) {
             req.setAttribute("error", "Extensión no permitida");
             req.setAttribute("categorias", CategoriaMaterial.values());
+            prepararMateriasYPerfil(req, (Usuario) session.getAttribute("usuarioLogueado"));
             req.getRequestDispatcher(VIEW).forward(req, resp);
             return;
         }
@@ -98,24 +113,40 @@ public class SubirMaterialServlet extends HttpServlet {
         Usuario u = (Usuario) session.getAttribute("usuarioLogueado");
         String nombreUsuario = "Tutor";
 
+        schemas.Tutor tutorRef = null;
         if (u.getIdPersona() != null) {
-            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            EntityManager em = JpaUtil.createEntityManager();
             try {
-                schemas.Tutor tutor = em.find(schemas.Tutor.class, u.getIdPersona());
-                if (tutor != null && tutor.getNombre() != null) {
-                    nombreUsuario = tutor.getNombre();
+                tutorRef = em.find(schemas.Tutor.class, u.getIdPersona());
+                if (tutorRef != null && tutorRef.getNombre() != null) {
+                    nombreUsuario = tutorRef.getNombre();
                 }
             } finally {
                 em.close();
             }
         }
 
+        if (tutorRef != null && tutorRef.getCarrera() != null && !materiaCodigo.isBlank()) {
+            if (!MateriasCatalogo.codigoPermitidoParaTutor(tutorRef.getCarrera(), tutorRef.getSemestre(), materiaCodigo)) {
+                req.setAttribute("error", "La materia no corresponde a tu carrera y semestre (solo niveles ya cursados).");
+                req.setAttribute("categorias", CategoriaMaterial.values());
+                prepararMateriasYPerfil(req, u);
+                req.getRequestDispatcher(VIEW).forward(req, resp);
+                return;
+            }
+        }
+
+        String idMateriaVal = materiaCodigo.isBlank() ? categoria : materiaCodigo;
+        String nombreMateriaVal = MateriasCatalogo.buscarPorCodigo(materiaCodigo)
+                .map(MateriasCatalogo.Opcion::getNombre)
+                .orElse(categoria != null && !categoria.isBlank() ? categoria : materiaCodigo);
+
         Material material = Material.builder()
                 .titulo(titulo)
                 .descripcion(descripcion)
                 .nombreArchivo(nombreArchivoGuardado)
-                .idMateria(categoria)
-                .nombreMateria(categoria)
+                .idMateria(idMateriaVal)
+                .nombreMateria(nombreMateriaVal)
                 .rutaArchivo("uploads/materiales/" + nombreArchivoGuardado)
                 .tipoArchivo(extension.substring(1))
                 .costo(costo)
