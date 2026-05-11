@@ -116,13 +116,13 @@
             <div class="h-8 w-px bg-outline-variant/30"></div>
             <div class="text-right hidden sm:block">
                 <p class="text-xs font-bold text-indigo-900" style="font-family:'Manrope',sans-serif">
-                    <c:out value="${sessionScope.adminLogueado.nombre}"/>
-                    <c:out value="${sessionScope.adminLogueado.apellido}"/>
+                    <c:out value="${requestScope.adminPerfil.nombre}"/>
+                    <c:out value="${requestScope.adminPerfil.apellido}"/>
                 </p>
                 <p class="text-[10px] text-slate-500">Administrador</p>
             </div>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.adminLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                <c:out value="${requestScope.adminPerfil.nombre.substring(0,1).toUpperCase()}"/>
             </div>
         </div>
     </header>

@@ -22,6 +22,18 @@ public class TutorDashboardServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
+
+        // Cargar información del perfil del tutor para la vista (nombre, etc.)
+        if (tutor.getIdPersona() != null) {
+            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            try {
+                schemas.Tutor tutorPerfil = em.find(schemas.Tutor.class, tutor.getIdPersona());
+                req.setAttribute("tutorPerfil", tutorPerfil);
+            } finally {
+                em.close();
+            }
+        }
+
         req.getRequestDispatcher("/WEB-INF/jsp/tutor/tutorDashboard.jsp").forward(req, resp);
     }
 }

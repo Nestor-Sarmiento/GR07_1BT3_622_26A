@@ -115,8 +115,8 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                <c:out value="${sessionScope.adminLogueado.nombre}"/>
-                <c:out value="${sessionScope.adminLogueado.apellido}"/>
+                <c:out value="${requestScope.adminPerfil.nombre}"/>
+                <c:out value="${requestScope.adminPerfil.apellido}"/>
             </span>
             <a href="${pageContext.request.contextPath}/perfil"
                class="p-2 text-slate-600 hover:bg-indigo-50 rounded-full transition-colors">
@@ -127,7 +127,7 @@
                 <span class="material-symbols-outlined">logout</span>
             </a>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.adminLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                <c:out value="${requestScope.adminPerfil.nombre.substring(0,1).toUpperCase()}"/>
             </div>
         </div>
     </header>

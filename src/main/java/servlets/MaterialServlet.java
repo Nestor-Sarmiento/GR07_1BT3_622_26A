@@ -1,6 +1,10 @@
 package servlets;
 
 import repositories.MaterialRepository;
+import schemas.Usuario;
+import schemas.Admin;
+import repositories.JpaUtil;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,6 +28,14 @@ public class MaterialServlet extends HttpServlet {
 
         consumeFlash(session, req);
         req.setAttribute("materiales", materialRepository.findAll());
+
+        Usuario usuarioLogueado = (Usuario) session.getAttribute("adminLogueado");
+        if (usuarioLogueado.getIdPersona() != null) {
+            try (EntityManager em = JpaUtil.createEntityManager()) {
+                Admin adminPerfil = em.find(Admin.class, usuarioLogueado.getIdPersona());
+                req.setAttribute("adminPerfil", adminPerfil);
+            }
+        }
 
         req.getRequestDispatcher("/WEB-INF/jsp/admin/materiales.jsp").forward(req, resp);
     }

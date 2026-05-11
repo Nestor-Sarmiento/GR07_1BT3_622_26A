@@ -24,14 +24,28 @@ public class VisualizarMaterialServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        Usuario tutor = obtenerTutorAutenticado(session);
-        if (tutor == null) {
+        Usuario usuario = obtenerTutorAutenticado(session);
+        if (usuario == null) {
             redirigirLogin(req, resp);
             return;
         }
 
-        // Filtrar materiales por el nombre del usuario logueado
-        List<Material> materiales = materialRepository.findByUsuario(tutor.getNombre());
+        String nombreUsuario = "Tutor";
+        if (usuario.getIdPersona() != null) {
+            jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+            try {
+                schemas.Tutor tutor = em.find(schemas.Tutor.class, usuario.getIdPersona());
+                if (tutor != null && tutor.getNombre() != null) {
+                    nombreUsuario = tutor.getNombre();
+                    req.setAttribute("tutorPerfil", tutor);
+                }
+            } finally {
+                em.close();
+            }
+        }
+
+        // Filtrar materiales por el nombre del usuario logueado (ahora obtenido de la tabla tutores)
+        List<Material> materiales = materialRepository.findByUsuario(nombreUsuario);
         long[] resumen = calcularResumenMateriales(materiales);
         cargarAtributosVista(req, materiales, resumen);
 

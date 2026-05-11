@@ -98,7 +98,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.tutorPerfil.nombre}"/></strong>
             </span>
             <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
                 <span class="material-symbols-outlined">notifications</span>
@@ -107,9 +107,11 @@
                class="p-2 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors">
                 <span class="material-symbols-outlined">logout</span>
             </a>
-            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
-            </div>
+            <a href="${pageContext.request.contextPath}/tutor/perfil"
+               class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm hover:ring-2 hover:ring-indigo-400 transition-all"
+               title="Mi Perfil">
+                <c:out value="${requestScope.tutorPerfil.nombre.substring(0,1).toUpperCase()}"/>
+            </a>
         </div>
     </header>
 
@@ -122,7 +124,7 @@
                 <div class="space-y-1">
                     <p class="text-on-surface-variant font-medium uppercase tracking-widest text-[10px]">Portal del Tutor</p>
                     <h2 class="text-4xl font-extrabold text-on-surface tracking-tight">
-                        Hola, <c:out value="${sessionScope.usuarioLogueado.nombre}"/>
+                        Hola, <c:out value="${requestScope.tutorPerfil.nombre}"/>
                     </h2>
                 </div>
                 <a href="${pageContext.request.contextPath}/tutor/subir"

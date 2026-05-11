@@ -70,6 +70,8 @@ public class LoginServlet extends HttpServlet {
 
             if (usuario.getRol() == Enums.Rol.TUTOR) {
                 resp.sendRedirect(req.getContextPath() + "/tutor/dashboard");
+            } else if (usuario.getRol() == Enums.Rol.ESTUDIANTE) {
+                resp.sendRedirect(req.getContextPath() + "/estudiante/dashboard");
             } else {
                 resp.sendRedirect(req.getContextPath() + "/index.jsp");
             }

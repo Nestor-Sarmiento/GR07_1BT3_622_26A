@@ -48,7 +48,10 @@
         response.sendRedirect(request.getContextPath() + "/estudiantes");
         return;
     }
-    boolean activo = u.getEstado() != null && "ACTIVO".equals(u.getEstado().name());
+    schemas.Estudiante p = (schemas.Estudiante) request.getAttribute("personaDetalle");
+    String nombreDisplay = (p != null && p.getNombre() != null) ? p.getNombre() : "User";
+    String apellidoDisplay = (p != null && p.getApellido() != null) ? p.getApellido() : "";
+    boolean activo = p != null && p.getEstado() != null && "ACTIVO".equals(p.getEstado().name());
 %>
 
 <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-slate-50 py-6 space-y-4 z-50">
@@ -113,17 +116,17 @@
         <div class="flex items-center gap-2 text-sm text-on-surface-variant">
             <a href="${pageContext.request.contextPath}/estudiantes" class="hover:text-primary transition-colors">Gestión de Estudiantes</a>
             <span class="material-symbols-outlined text-sm">chevron_right</span>
-            <span class="text-on-surface font-medium"><%= u.getNombre() %> <%= u.getApellido() %></span>
+            <span class="text-on-surface font-medium"><%= nombreDisplay %> <%= apellidoDisplay %></span>
         </div>
 
         <%-- ── Hero banner ── --%>
         <div class="relative bg-gradient-to-br from-indigo-900 to-indigo-700 rounded-2xl p-10 text-white overflow-hidden">
             <div class="flex items-center gap-6 relative z-10">
                 <div class="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-3xl font-black">
-                    <%= u.getNombre() != null ? u.getNombre().substring(0,1).toUpperCase() : "?" %>
+                    <%= nombreDisplay.substring(0,1).toUpperCase() %>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-extrabold tracking-tight"><%= u.getNombre() %> <%= u.getApellido() %></h1>
+                    <h1 class="text-3xl font-extrabold tracking-tight"><%= nombreDisplay %> <%= apellidoDisplay %></h1>
                     <p class="text-indigo-200 text-sm mt-1"><%= u.getEmail() %></p>
                     <span class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
                         <%= activo ? "bg-green-400/20 text-green-200" : "bg-red-400/20 text-red-200" %>">
@@ -160,14 +163,14 @@
                             <label class="block text-xs font-semibold text-primary uppercase tracking-wider" for="nombre">Nombre</label>
                             <input class="w-full px-4 py-3 bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-indigo-300 text-on-surface outline-none transition-all"
                                    id="nombre" name="nombre" type="text"
-                                   value="<%= u.getNombre() != null ? u.getNombre() : "" %>" required/>
+                                   value="<%= (p != null && p.getNombre() != null) ? p.getNombre() : "" %>" required/>
                         </div>
                         <%-- Apellido --%>
                         <div class="space-y-1">
                             <label class="block text-xs font-semibold text-primary uppercase tracking-wider" for="apellido">Apellido</label>
                             <input class="w-full px-4 py-3 bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-indigo-300 text-on-surface outline-none transition-all"
                                    id="apellido" name="apellido" type="text"
-                                   value="<%= u.getApellido() != null ? u.getApellido() : "" %>"/>
+                                   value="<%= (p != null && p.getApellido() != null) ? p.getApellido() : "" %>"/>
                         </div>
                     </div>
 

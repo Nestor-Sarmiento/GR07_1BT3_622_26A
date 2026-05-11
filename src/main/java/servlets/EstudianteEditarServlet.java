@@ -28,63 +28,78 @@ public class EstudianteEditarServlet extends HttpServlet {
 
         Long id = parseLong(req.getParameter("id"));
         if (id == null) {
-            flash(session, "error", "No se pudo identificar el estudiante a actualizar.");
+            ServletUtils.flash(session, "error", "No se pudo identificar el estudiante a actualizar.");
             resp.sendRedirect(req.getContextPath() + "/estudiantes");
             return;
         }
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
         if (usuarioOpt.isEmpty()) {
-            flash(session, "error", "El estudiante seleccionado no existe.");
+            ServletUtils.flash(session, "error", "El estudiante seleccionado no existe.");
             resp.sendRedirect(req.getContextPath() + "/estudiantes");
             return;
         }
 
         Usuario usuario = usuarioOpt.get();
         if (usuario.getRol() != Rol.ESTUDIANTE) {
-            flash(session, "error", "Solo se pueden editar estudiantes.");
+            ServletUtils.flash(session, "error", "Solo se pueden editar estudiantes.");
             resp.sendRedirect(req.getContextPath() + "/estudiantes");
             return;
         }
 
-        String nombre = value(req.getParameter("nombre"));
-        String apellido = value(req.getParameter("apellido"));
-        String segundoNombre = value(req.getParameter("segundo_nombre"));
-        String segundoApellido = value(req.getParameter("segundo_apellido"));
-        String email = value(req.getParameter("email"));
-        String password = value(req.getParameter("password"));
+        String nombre = ServletUtils.value(req.getParameter("nombre"));
+        String apellido = ServletUtils.value(req.getParameter("apellido"));
+        String segundoNombre = ServletUtils.value(req.getParameter("segundo_nombre"));
+        String segundoApellido = ServletUtils.value(req.getParameter("segundo_apellido"));
+        String email = ServletUtils.value(req.getParameter("email"));
+        String password = ServletUtils.value(req.getParameter("password"));
 
         // Validar nombre y correo usando EstudianteService
         if (!estudianteService.validarActualizacionDatos(nombre, email)) {
-            flash(session, "error", "Nombre y correo electrónico son obligatorios y deben ser válidos.");
+            ServletUtils.flash(session, "error", "Nombre y correo electrónico son obligatorios y deben ser válidos.");
             resp.sendRedirect(req.getContextPath() + "/estudiante/detalle?id=" + id);
             return;
         }
 
         if (usuarioRepository.existsByEmail(email, id)) {
-            flash(session, "error", "Ya existe otro usuario con ese correo electrónico.");
+            ServletUtils.flash(session, "error", "Ya existe otro usuario con ese correo electrónico.");
             resp.sendRedirect(req.getContextPath() + "/estudiante/detalle?id=" + id);
             return;
         }
 
-        usuario.setNombre(nombre);
-        usuario.setApellido(apellido);
-        usuario.setSegundoNombre(segundoNombre);
-        usuario.setSegundoApellido(segundoApellido);
         usuario.setEmail(email);
         if (!password.isBlank()) {
             usuario.setPassword(password);
-            usuario.setMustChangePassword(false);
         }
 
-        usuarioRepository.save(usuario);
+        jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+        jakarta.persistence.EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            usuarioRepository.save(usuario);
 
-        flash(session, "mensaje", "Los datos del estudiante se actualizaron correctamente.");
+            if (usuario.getIdPersona() != null) {
+                schemas.Estudiante est = em.find(schemas.Estudiante.class, usuario.getIdPersona());
+                if (est != null) {
+                    est.setNombre(nombre);
+                    est.setApellido(apellido);
+                    est.setSegundoNombre(segundoNombre);
+                    est.setSegundoApellido(segundoApellido);
+                    em.merge(est);
+                }
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            ServletUtils.flash(session, "error", "Error al actualizar datos: " + e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/estudiante/detalle?id=" + id);
+            return;
+        } finally {
+            em.close();
+        }
+
+        ServletUtils.flash(session, "mensaje", "Los datos del estudiante se actualizaron correctamente.");
         resp.sendRedirect(req.getContextPath() + "/estudiante/detalle?id=" + id);
-    }
-
-    private void flash(HttpSession session, String key, String value) {
-        session.setAttribute(key, value);
     }
 
     private Long parseLong(String value) {
@@ -94,9 +109,4 @@ public class EstudianteEditarServlet extends HttpServlet {
             return null;
         }
     }
-
-    private String value(String input) {
-        return input == null ? "" : input.trim();
-    }
 }
-

@@ -9,6 +9,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import schemas.Material;
+import schemas.Usuario;
+import schemas.Admin;
+import repositories.JpaUtil;
+import jakarta.persistence.EntityManager;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -39,6 +43,14 @@ public class MaterialDetalleServlet extends HttpServlet {
         if (session == null || session.getAttribute("adminLogueado") == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
+        }
+
+        Usuario adminUser = (Usuario) session.getAttribute("adminLogueado");
+        if (adminUser.getIdPersona() != null) {
+            try (EntityManager em = JpaUtil.createEntityManager()) {
+                Admin adminPerfil = em.find(Admin.class, adminUser.getIdPersona());
+                req.setAttribute("adminPerfil", adminPerfil);
+            }
         }
 
         Long id = parseLong(req.getParameter("id"));

@@ -37,9 +37,9 @@ public class EstudianteCrearServlet extends HttpServlet {
             return;
         }
 
-        String nombre = value(req.getParameter("nombre"));
-        String apellido = value(req.getParameter("apellido"));
-        String email = value(req.getParameter("email"));
+        String nombre = ServletUtils.value(req.getParameter("nombre"));
+        String apellido = ServletUtils.value(req.getParameter("apellido"));
+        String email = ServletUtils.value(req.getParameter("email"));
 
         // Validar nombre y correo usando EstudianteService
         if (!estudianteService.validarNombre(nombre)) {
@@ -62,16 +62,32 @@ public class EstudianteCrearServlet extends HttpServlet {
 
         String passwordTemporal = generarPasswordTemporal();
         try {
-            Usuario estudiante = estudianteService.crearEstudiante(
+            Usuario usuario = estudianteService.crearEstudiante(
                     usuarioRepository,
                     nombre,
                     email,
                     passwordTemporal
             );
             
-            // Actualizar apellido (EstudianteService no lo maneja)
-            estudiante.setApellido(apellido);
-            usuarioRepository.save(estudiante);
+            // Actualizar apellido en la tabla de Estudiante
+            if (usuario.getIdPersona() != null) {
+                jakarta.persistence.EntityManager em = repositories.JpaUtil.createEntityManager();
+                jakarta.persistence.EntityTransaction tx = em.getTransaction();
+                try {
+                    tx.begin();
+                    schemas.Estudiante est = em.find(schemas.Estudiante.class, usuario.getIdPersona());
+                    if (est != null) {
+                        est.setApellido(apellido);
+                        em.merge(est);
+                    }
+                    tx.commit();
+                } catch (Exception e) {
+                    if (tx.isActive()) tx.rollback();
+                    throw e;
+                } finally {
+                    em.close();
+                }
+            }
 
             session.setAttribute("mensaje", "Cuenta de estudiante creada correctamente. Credenciales temporales: "
                     + email + " / " + passwordTemporal);
@@ -82,12 +98,7 @@ public class EstudianteCrearServlet extends HttpServlet {
         }
     }
 
-    private String value(String input) {
-        return input == null ? "" : input.trim();
-    }
-
     private String generarPasswordTemporal() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 10) + "A1";
     }
 }
-

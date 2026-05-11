@@ -95,7 +95,32 @@
 </aside>
 
 <%-- ── Main ── --%>
-<main class="ml-64 min-h-screen pt-16 flex flex-col">
+<main class="ml-64 min-h-screen flex flex-col">
+
+    <%-- Top Nav --%>
+    <header class="w-full sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm h-16 flex justify-between items-center px-8">
+        <div class="flex items-center gap-4">
+            <span class="text-xl font-bold text-indigo-900 tracking-tight" style="font-family:'Manrope',sans-serif">
+                Editorial Intelligence
+            </span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-sm text-slate-600 hidden sm:block">
+                Hola, <strong><c:out value="${requestScope.adminPerfil.nombre}"/></strong>
+            </span>
+            <a href="${pageContext.request.contextPath}/perfil"
+               class="p-2 text-slate-600 hover:bg-indigo-50 rounded-full transition-colors">
+                <span class="material-symbols-outlined">settings</span>
+            </a>
+            <a href="${pageContext.request.contextPath}/logout"
+               class="p-2 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors">
+                <span class="material-symbols-outlined">logout</span>
+            </a>
+            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
+                <c:out value="${requestScope.adminPerfil.nombre.substring(0,1).toUpperCase()}"/>
+            </div>
+        </div>
+    </header>
 
     <%-- Mensajes flash --%>
     <c:if test="${not empty requestScope.mensaje}">

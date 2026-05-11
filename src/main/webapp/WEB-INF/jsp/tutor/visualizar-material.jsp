@@ -115,7 +115,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-600 hidden sm:block">
-                Hola, <strong><c:out value="${sessionScope.usuarioLogueado.nombre}"/></strong>
+                Hola, <strong><c:out value="${requestScope.tutorPerfil.nombre}"/></strong>
             </span>
             <button class="p-2 text-slate-500 hover:bg-indigo-50 rounded-full transition-colors">
                 <span class="material-symbols-outlined">notifications</span>
@@ -125,7 +125,7 @@
                 <span class="material-symbols-outlined">logout</span>
             </a>
             <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                <c:out value="${sessionScope.usuarioLogueado.nombre.substring(0,1).toUpperCase()}"/>
+                <c:out value="${requestScope.tutorPerfil.nombre.substring(0,1).toUpperCase()}"/>
             </div>
         </div>
     </header>
@@ -263,7 +263,7 @@
                             <div class="px-8 py-4 border-t border-outline-variant/10 flex items-center justify-between">
                                 <p class="text-xs text-outline font-medium">
                                     Mostrando materiales de
-                                    <c:out value="${sessionScope.usuarioLogueado.nombre}"/>
+                                    <c:out value="${requestScope.tutorPerfil.nombre}"/>
                                 </p>
                                 <div class="flex gap-2">
                                     <button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 text-outline hover:bg-surface-container transition-all">
