@@ -64,11 +64,10 @@ public class SubirMaterialServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("usuarioLogueado") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
+        if (!esTutor(req, resp)) {
             return;
         }
+        HttpSession session = req.getSession(false);
 
         String titulo = req.getParameter("titulo");
         String descripcion = req.getParameter("descripcion");
