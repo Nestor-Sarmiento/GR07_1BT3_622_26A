@@ -1,7 +1,6 @@
 package servlets;
 
 import Enums.Estados;
-import Enums.MateriaFIS;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.junit.jupiter.api.Test;
@@ -49,15 +48,15 @@ class BuscarTutorServletMockTest {
     @DisplayName("PRUEBA 6A: Mock debería traer tutores activos por materia")
     void doGet_deberiaTraerTutoresActivosPorMateria() {
         // Arrange
-        Set<MateriaFIS> materias = new HashSet<>();
-        materias.add(MateriaFIS.PROGRAMACION_I);
+        Set<String> codigos = new HashSet<>();
+        codigos.add("ICCD144");
 
         Tutor tutor1 = Tutor.builder()
                 .id(1L)
                 .nombre("Carlos")
                 .apellido("López")
                 .estado(Estados.ACTIVO)
-                .materiasRelacionadas(materias)
+                .codigosMateriaRelacionadas(codigos)
                 .descripcionProfesional("Experto en programación Java y Python")
                 .build();
 
@@ -68,14 +67,14 @@ class BuscarTutorServletMockTest {
             mockedJpaUtil.when(JpaUtil::createEntityManager).thenReturn(entityManager);
 
             when(entityManager.createQuery(
-                    contains("SELECT DISTINCT t FROM Tutor t WHERE"),
+                    contains("codigosMateriaRelacionadas"),
                     eq(Tutor.class)))
                     .thenReturn(typedQuery);
 
-            when(typedQuery.setParameter(eq("m"), any(MateriaFIS.class)))
+            when(typedQuery.setParameter(eq("cod"), any(String.class)))
                     .thenReturn(typedQuery);
 
-            when(typedQuery.setParameter(eq("activo"), eq(Estados.ACTIVO)))
+            when(typedQuery.setParameter(eq("inactivo"), eq(Estados.INACTIVO)))
                     .thenReturn(typedQuery);
 
             when(typedQuery.getResultList()).thenReturn(tutoresEsperados);
@@ -90,9 +89,9 @@ class BuscarTutorServletMockTest {
                     "El nombre del tutor debe ser 'Carlos'");
             assertEquals(Estados.ACTIVO, resultado.get(0).getEstado(),
                     "El tutor debe estar ACTIVO");
-            assertTrue(resultado.get(0).getMateriasRelacionadas()
-                            .contains(MateriaFIS.PROGRAMACION_I),
-                    "El tutor debe tener PROGRAMACION_I");
+            assertTrue(resultado.get(0).getCodigosMateriaRelacionadas()
+                            .contains("ICCD144"),
+                    "El tutor debe tener código ICCD144");
 
             verify(typedQuery).getResultList();
         }
@@ -135,16 +134,16 @@ class BuscarTutorServletMockTest {
     @DisplayName("PRUEBA 6C: Mock debería retornar múltiples tutores")
     void doGet_deberiaRetornarMultiplesTutores() {
         // Arrange
-        Set<MateriaFIS> materias = new HashSet<>();
-        materias.add(MateriaFIS.ALGEBRA_LINEAL);
+        Set<String> codigos = new HashSet<>();
+        codigos.add("MATD113");
 
         Tutor tutor1 = Tutor.builder()
                 .id(1L).nombre("Ana").apellido("García")
-                .estado(Estados.ACTIVO).materiasRelacionadas(materias).build();
+                .estado(Estados.ACTIVO).codigosMateriaRelacionadas(codigos).build();
 
         Tutor tutor2 = Tutor.builder()
                 .id(2L).nombre("Carlos").apellido("López")
-                .estado(Estados.ACTIVO).materiasRelacionadas(materias).build();
+                .estado(Estados.ACTIVO).codigosMateriaRelacionadas(codigos).build();
 
         List<Tutor> tutoresEsperados = new ArrayList<>();
         tutoresEsperados.add(tutor1);
@@ -180,14 +179,14 @@ class BuscarTutorServletMockTest {
     @DisplayName("PRUEBA 6D: Mock debería retornar solo tutores ACTIVOS")
     void doGet_deberiaRetornarSoloTutoresActivos() {
         // Arrange
-        Set<MateriaFIS> materias = new HashSet<>();
-        materias.add(MateriaFIS.SISTEMAS_OPERATIVOS);
+        Set<String> codigos = new HashSet<>();
+        codigos.add("ICCD323");
 
         Tutor tutorActivo = Tutor.builder()
                 .id(1L)
                 .nombre("Profesor Activo")
                 .estado(Estados.ACTIVO)
-                .materiasRelacionadas(materias)
+                .codigosMateriaRelacionadas(codigos)
                 .build();
 
         List<Tutor> tutoresEsperados = new ArrayList<>();
@@ -196,15 +195,13 @@ class BuscarTutorServletMockTest {
         try (MockedStatic<JpaUtil> mockedJpaUtil = mockStatic(JpaUtil.class)) {
             mockedJpaUtil.when(JpaUtil::createEntityManager).thenReturn(entityManager);
 
-            when(entityManager.createQuery(
-                    argThat(jpql -> jpql.contains("t.estado = :activo")),
-                    eq(Tutor.class)))
+            when(entityManager.createQuery(anyString(), eq(Tutor.class)))
                     .thenReturn(typedQuery);
 
-            when(typedQuery.setParameter(eq("activo"), eq(Estados.ACTIVO)))
+            when(typedQuery.setParameter(eq("inactivo"), eq(Estados.INACTIVO)))
                     .thenReturn(typedQuery);
 
-            when(typedQuery.setParameter(anyString(), any(MateriaFIS.class)))
+            when(typedQuery.setParameter(eq("cod"), any(String.class)))
                     .thenReturn(typedQuery);
 
             when(typedQuery.getResultList()).thenReturn(tutoresEsperados);

@@ -1,14 +1,14 @@
 package servlets;
 
-import Enums.MateriaFIS;
+import Enums.MateriasCatalogo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import schemas.Tutor;
 import schemas.TutorListadoDTO;
+import schemas.TutorListadoMapper;
 
-import java.lang.reflect.Method;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +30,7 @@ class BuscarTutorServletTest {
      */
     @Test
     @DisplayName("PRUEBA 1: Conversión Tutor → TutorListadoDTO")
-    void toDto_deberiaConvertirTutorCompleto() throws Exception {
+    void toDto_deberiaConvertirTutorCompleto() {
         // Arrange - Tutor con todos los campos y bio > 140 chars
         Tutor tutor = Tutor.builder()
                 .id(1L)
@@ -39,11 +39,11 @@ class BuscarTutorServletTest {
                 .apellido("López")
                 .segundoApellido("González")
                 .descripcionProfesional("Experto en Programación" + "X".repeat(130))
-                .materiasRelacionadas(Set.of(MateriaFIS.PROGRAMACION_I, MateriaFIS.SISTEMAS_OPERATIVOS))
+                .codigosMateriaRelacionadas(Set.of("ICCD144", "ICCD323"))
                 .build();
 
         // Act
-        TutorListadoDTO dto = invocarToDto(tutor);
+        TutorListadoDTO dto = TutorListadoMapper.toDto(tutor);
 
         // Assert
         assertEquals(1L, dto.getIdTutor(),
@@ -55,6 +55,8 @@ class BuscarTutorServletTest {
         // La clase TutorListadoDTO usa el campo materiasEtiquetas → getter getMateriasEtiquetas()
         assertEquals(2, dto.getMateriasEtiquetas().size(),
                 "Deben mapearse las 2 materias del tutor");
+        assertTrue(dto.getMateriasEtiquetas().contains("PROGRAMACIÓN I"));
+        assertTrue(dto.getMateriasEtiquetas().contains("SISTEMAS OPERATIVOS"));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -67,12 +69,12 @@ class BuscarTutorServletTest {
      */
     @Test
     @DisplayName("PRUEBA 2: Construcción de nombre completo")
-    void joinNombreParts_deberiaUnirPartesCorrectamente() throws Exception {
+    void joinNombreParts_deberiaUnirPartesCorrectamente() {
         // Act - cuatro combinaciones distintas
-        String resultado1 = invocarJoinNombreParts("Juan", "Carlos", "Pérez", "López");
-        String resultado2 = invocarJoinNombreParts("María", null, "García", "");
-        String resultado3 = invocarJoinNombreParts(null, null, null, null);
-        String resultado4 = invocarJoinNombreParts("  Ana María  ", "   ", "Rodríguez");
+        String resultado1 = TutorListadoMapper.joinNombreParts("Juan", "Carlos", "Pérez", "López");
+        String resultado2 = TutorListadoMapper.joinNombreParts("María", null, "García", "");
+        String resultado3 = TutorListadoMapper.joinNombreParts(null, null, null, null);
+        String resultado4 = TutorListadoMapper.joinNombreParts("  Ana María  ", "   ", "Rodríguez");
 
         // Assert
         assertEquals("Juan Carlos Pérez López", resultado1,
@@ -95,21 +97,21 @@ class BuscarTutorServletTest {
      */
     @Test
     @DisplayName("PRUEBA 3: Truncamiento de biografía a 140 caracteres")
-    void toDto_deberiaTruncarBiografiaA140Caracteres() throws Exception {
+    void toDto_deberiaTruncarBiografiaA140Caracteres() {
         // Arrange - bio de 150 'A'
         String bioOriginal = "A".repeat(150);
         Tutor tutor = Tutor.builder()
                 .id(1L)
                 .nombre("Profesor")
                 .descripcionProfesional(bioOriginal)
-                .materiasRelacionadas(Set.of())
+                .codigosMateriaRelacionadas(Set.of())
                 .build();
 
         // Act
-        TutorListadoDTO dto = invocarToDto(tutor);
+        TutorListadoDTO dto = TutorListadoMapper.toDto(tutor);
 
         // Assert
-        // La lógica en BuscarTutorServlet hace: bio.substring(0, BIO_MAX-1) + "…"
+        // La lógica en TutorListadoMapper hace: bio.substring(0, BIO_MAX-1) + "…"
         // → 139 chars de 'A' + "…" = 140 chars totales
         assertEquals(140, dto.getBioCorta().length(),
                 "La bio truncada debe tener exactamente 140 caracteres");
@@ -120,62 +122,32 @@ class BuscarTutorServletTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // PRUEBA 5: Validación parametrizada de múltiples materias
+    // PRUEBA 5: Validación parametrizada de códigos SIGLA en el catálogo
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Prueba parametrizada que verifica que MateriaFIS.valueOf() reconoce
-     * las materias válidas del enum y rechaza las inválidas con
-     * IllegalArgumentException.
-     *
-     * Cubre:
-     *  - 3 materias existentes en el enum → esValida=true
-     *  - 1 nombre que NO existe           → esValida=false
-     *  - PROGRAMACION_II que sí existe    → esValida=true
+     * Prueba parametrizada que verifica que {@link MateriasCatalogo#buscarPorCodigo(String)}
+     * reconoce códigos válidos y rechaza los que no existen.
      */
-    @ParameterizedTest(name = "materia={0} → válida={1}")
+    @ParameterizedTest(name = "codigo={0} → válido={1}")
     @CsvSource({
-            "PROGRAMACION_I,      true",
-            "ALGEBRA_LINEAL,      true",
-            "SISTEMAS_OPERATIVOS, true",
-            "MATERIA_INVALIDA,    false",
-            "PROGRAMACION_II,     true"
+            "ICCD144,              true",
+            "MATD113,              true",
+            "ICCD323,              true",
+            "CODIGO_INVALIDO_XXX,  false",
+            "ICCD244,              true"
     })
-    @DisplayName("PRUEBA 5: Validación parametrizada de múltiples materias")
-    void validarMultiplesMaterias(String materiaNombre, boolean esValida) {
-        // Act
-        boolean estaValida = true;
-        try {
-            MateriaFIS.valueOf(materiaNombre.trim());
-        } catch (IllegalArgumentException e) {
-            estaValida = false;
-        }
+    @DisplayName("PRUEBA 5: Validación parametrizada de códigos de materia")
+    void validarMultiplesCodigosMateria(String codigo, boolean esValida) {
+        boolean estaValida = MateriasCatalogo.buscarPorCodigo(codigo.trim()).isPresent();
 
-        // Assert
         if (esValida) {
             assertTrue(estaValida,
-                    "'" + materiaNombre + "' debería existir en MateriaFIS");
+                    "'" + codigo + "' debería existir en el catálogo de materias");
         } else {
             assertFalse(estaValida,
-                    "'" + materiaNombre + "' NO debería existir en MateriaFIS");
+                    "'" + codigo + "' NO debería existir en el catálogo de materias");
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers de reflexión
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /** Invoca el método privado estático BuscarTutorServlet#toDto(Tutor) */
-    private TutorListadoDTO invocarToDto(Tutor tutor) throws Exception {
-        Method method = BuscarTutorServlet.class.getDeclaredMethod("toDto", Tutor.class);
-        method.setAccessible(true);
-        return (TutorListadoDTO) method.invoke(null, tutor);
-    }
-
-    /** Invoca el método privado estático BuscarTutorServlet#joinNombreParts(String...) */
-    private String invocarJoinNombreParts(String... parts) throws Exception {
-        Method method = BuscarTutorServlet.class.getDeclaredMethod("joinNombreParts", String[].class);
-        method.setAccessible(true);
-        return (String) method.invoke(null, (Object) parts);
-    }
 }

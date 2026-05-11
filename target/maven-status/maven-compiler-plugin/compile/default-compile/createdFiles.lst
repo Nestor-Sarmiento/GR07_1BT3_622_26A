@@ -1,3 +1,4 @@
+servlets\PerfilTutorServlet.class
 servlets\UsuarioCrearServlet.class
 repositories\UsuarioRepository.class
 schemas\Material$MaterialBuilder.class
@@ -5,7 +6,10 @@ servlets\EstudianteServlet.class
 repositories\MaterialRepository.class
 servlets\EstudianteCrearServlet.class
 servlets\validators\ArchivoMaterialValidator.class
+Enums\Carrera.class
 Enums\MateriasCatalogo$Opcion.class
+schemas\Tutor.class
+schemas\UsuarioDTO$UsuarioDTOBuilder.class
 Enums\MateriaCienciaDatosIA.class
 Enums\EstadoMaterial.class
 servlets\LoginServlet.class
@@ -15,13 +19,17 @@ servlets\RegistroServlet.class
 Enums\RolAttributeConverter.class
 Enums\Estados.class
 servlets\SubirMaterialServlet.class
+servlets\EstudianteDashboardServlet.class
 tools\MigrateTutorMateriasFisToCodigo.class
 schemas\TutorListadoDTO$TutorListadoDTOBuilder.class
 servlets\LogoutServlet.class
 servlets\ServletUtils.class
+servlets\MaterialDetalleServlet$ResultadoAccion.class
 Enums\MateriasCatalogo.class
 servlets\DetalleMaterialTutorServlet.class
 schemas\Material.class
+schemas\Estudiante$EstudianteBuilder.class
+schemas\Tutor$TutorBuilder.class
 repositories\AdminRepository.class
 schemas\Usuario.class
 servlets\EstudiantePerfilTutorServlet.class
@@ -34,10 +42,13 @@ servlets\UsuarioDetalleServlet.class
 web\AppContextListener.class
 schemas\Admin$AdminBuilderImpl.class
 schemas\Usuario$UsuarioBuilder.class
+servlets\BuscarTutorServlet.class
+schemas\TutorListadoMapper.class
 servlets\EstudianteEditarServlet.class
 Enums\Rol.class
 servlets\UsuarioEditarServlet.class
 services\EstudianteService.class
+schemas\Estudiante.class
 servlets\MaterialDetalleServlet.class
 servlets\UsuarioServlet.class
 schemas\Admin.class
@@ -47,6 +58,8 @@ Enums\MateriaSistemasInformacion.class
 schemas\TutorListadoDTO.class
 servlets\DashboardAdminServlet.class
 repositories\JpaUtil.class
+schemas\UsuarioDTO.class
 servlets\VisualizarMaterialServlet.class
 schemas\Admin$AdminBuilder.class
 servlets\MaterialServlet.class
+Enums\Semestre.class
