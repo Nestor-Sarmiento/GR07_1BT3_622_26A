@@ -1,8 +1,7 @@
 package schemas;
 
-import Enums.MateriaFIS;
+import Enums.MateriasCatalogo;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -29,10 +28,10 @@ public final class TutorListadoMapper {
         if (bio == null || bio.isEmpty()) {
             bio = "Tutor académico";
         }
-        List<String> tags = t.getMateriasRelacionadas() == null ? List.of()
-                : t.getMateriasRelacionadas().stream()
-                .sorted(Comparator.comparing(MateriaFIS::getNombre))
-                .map(MateriaFIS::getNombre)
+        List<String> tags = t.getCodigosMateriaRelacionadas() == null ? List.of()
+                : t.getCodigosMateriaRelacionadas().stream()
+                .map(c -> MateriasCatalogo.buscarPorCodigo(c).map(MateriasCatalogo.Opcion::getNombre).orElse(c))
+                .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(Collectors.toList());
         return TutorListadoDTO.builder()
                 .idTutor(t.getId())

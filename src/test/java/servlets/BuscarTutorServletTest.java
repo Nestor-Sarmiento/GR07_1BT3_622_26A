@@ -1,6 +1,6 @@
 package servlets;
 
-import Enums.MateriaFIS;
+import Enums.MateriasCatalogo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,7 +39,7 @@ class BuscarTutorServletTest {
                 .apellido("López")
                 .segundoApellido("González")
                 .descripcionProfesional("Experto en Programación" + "X".repeat(130))
-                .materiasRelacionadas(Set.of(MateriaFIS.PROGRAMACION_I, MateriaFIS.SISTEMAS_OPERATIVOS))
+                .codigosMateriaRelacionadas(Set.of("ICCD144", "ICCD323"))
                 .build();
 
         // Act
@@ -55,6 +55,8 @@ class BuscarTutorServletTest {
         // La clase TutorListadoDTO usa el campo materiasEtiquetas → getter getMateriasEtiquetas()
         assertEquals(2, dto.getMateriasEtiquetas().size(),
                 "Deben mapearse las 2 materias del tutor");
+        assertTrue(dto.getMateriasEtiquetas().contains("PROGRAMACIÓN I"));
+        assertTrue(dto.getMateriasEtiquetas().contains("SISTEMAS OPERATIVOS"));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -102,7 +104,7 @@ class BuscarTutorServletTest {
                 .id(1L)
                 .nombre("Profesor")
                 .descripcionProfesional(bioOriginal)
-                .materiasRelacionadas(Set.of())
+                .codigosMateriaRelacionadas(Set.of())
                 .build();
 
         // Act
@@ -120,44 +122,31 @@ class BuscarTutorServletTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // PRUEBA 5: Validación parametrizada de múltiples materias
+    // PRUEBA 5: Validación parametrizada de códigos SIGLA en el catálogo
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Prueba parametrizada que verifica que MateriaFIS.valueOf() reconoce
-     * las materias válidas del enum y rechaza las inválidas con
-     * IllegalArgumentException.
-     *
-     * Cubre:
-     *  - 3 materias existentes en el enum → esValida=true
-     *  - 1 nombre que NO existe           → esValida=false
-     *  - PROGRAMACION_II que sí existe    → esValida=true
+     * Prueba parametrizada que verifica que {@link MateriasCatalogo#buscarPorCodigo(String)}
+     * reconoce códigos válidos y rechaza los que no existen.
      */
-    @ParameterizedTest(name = "materia={0} → válida={1}")
+    @ParameterizedTest(name = "codigo={0} → válido={1}")
     @CsvSource({
-            "PROGRAMACION_I,      true",
-            "ALGEBRA_LINEAL,      true",
-            "SISTEMAS_OPERATIVOS, true",
-            "MATERIA_INVALIDA,    false",
-            "PROGRAMACION_II,     true"
+            "ICCD144,              true",
+            "MATD113,              true",
+            "ICCD323,              true",
+            "CODIGO_INVALIDO_XXX,  false",
+            "ICCD244,              true"
     })
-    @DisplayName("PRUEBA 5: Validación parametrizada de múltiples materias")
-    void validarMultiplesMaterias(String materiaNombre, boolean esValida) {
-        // Act
-        boolean estaValida = true;
-        try {
-            MateriaFIS.valueOf(materiaNombre.trim());
-        } catch (IllegalArgumentException e) {
-            estaValida = false;
-        }
+    @DisplayName("PRUEBA 5: Validación parametrizada de códigos de materia")
+    void validarMultiplesCodigosMateria(String codigo, boolean esValida) {
+        boolean estaValida = MateriasCatalogo.buscarPorCodigo(codigo.trim()).isPresent();
 
-        // Assert
         if (esValida) {
             assertTrue(estaValida,
-                    "'" + materiaNombre + "' debería existir en MateriaFIS");
+                    "'" + codigo + "' debería existir en el catálogo de materias");
         } else {
             assertFalse(estaValida,
-                    "'" + materiaNombre + "' NO debería existir en MateriaFIS");
+                    "'" + codigo + "' NO debería existir en el catálogo de materias");
         }
     }
 
