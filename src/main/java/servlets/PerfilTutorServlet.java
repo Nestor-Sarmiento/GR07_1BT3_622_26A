@@ -19,7 +19,9 @@ import schemas.Usuario;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -148,30 +150,19 @@ public class PerfilTutorServlet extends HttpServlet {
                         Carrera car = Carrera.valueOf(carreraStr);
                         Semestre semTutor = tutor.getSemestre();
                         String raw = req.getParameter("materias");
-                        Set<String> nuevas = new HashSet<>();
-                        if (raw != null && !raw.isBlank()) {
-                            for (String part : raw.split(",")) {
-                                String p = part.trim();
-                                if (p.isEmpty()) {
-                                    continue;
-                                }
-                                boolean ok = false;
-                                for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarreraParaTutor(car, semTutor)) {
-                                    if (op.getCodigo().equalsIgnoreCase(p)) {
-                                        nuevas.add(op.getCodigo());
-                                        ok = true;
-                                        break;
-                                    }
-                                }
-                                if (!ok) {
-                                    tx.rollback();
-                                    resp.sendRedirect(redirectBase + "?error="
-                                            + url("Una o más materias no son válidas para tu carrera y semestre "
-                                                    + "(solo asignaturas de semestres anteriores al tuyo)."));
-                                    return;
-                                }
-                            }
+                        Iterable<String> tokens = (raw == null || raw.isBlank())
+                                ? List.of()
+                                : Arrays.asList(raw.split(","));
+                        Optional<Set<String>> nuevasOpt =
+                                MateriasCatalogo.normalizarCodigosParaTutor(car, semTutor, tokens);
+                        if (nuevasOpt.isEmpty()) {
+                            tx.rollback();
+                            resp.sendRedirect(redirectBase + "?error="
+                                    + url("Una o más materias no son válidas para tu carrera y semestre "
+                                            + "(solo asignaturas de semestres anteriores al tuyo)."));
+                            return;
                         }
+                        Set<String> nuevas = nuevasOpt.get();
                         tutor.setCarrera(car);
                         tutor.setCodigosMateriaRelacionadas(nuevas);
                         em.merge(tutor);

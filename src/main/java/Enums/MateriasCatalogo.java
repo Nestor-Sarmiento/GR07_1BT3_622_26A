@@ -3,11 +3,13 @@ package Enums;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Une las materias por carrera ({@link MateriaSoftware}, etc.) y expone búsqueda por código SIGLA.
@@ -125,6 +127,39 @@ public final class MateriasCatalogo {
         }
         String norm = codigo.trim();
         return porCarrera(carrera).stream().anyMatch(o -> o.getCodigo().equalsIgnoreCase(norm));
+    }
+
+    /**
+     * Normaliza códigos enviados desde formularios frente a {@link #porCarreraParaTutor}.
+     * Ignora entradas {@code null} o en blanco. Si {@code carrera} o {@code semestreTutor} son null,
+     * retorna vacío. Si algún código no vacío no está en el catálogo permitido para el tutor,
+     * retorna {@link Optional#empty()}; en caso contrario, el conjunto con la grafía canónica del catálogo.
+     */
+    public static Optional<Set<String>> normalizarCodigosParaTutor(
+            Carrera carrera, Semestre semestreTutor, Iterable<String> codigosBrutos) {
+        if (carrera == null || semestreTutor == null) {
+            return Optional.empty();
+        }
+        List<Opcion> permitidas = porCarreraParaTutor(carrera, semestreTutor);
+        Set<String> resultado = new HashSet<>();
+        for (String bruto : codigosBrutos) {
+            if (bruto == null || bruto.isBlank()) {
+                continue;
+            }
+            String p = bruto.trim();
+            boolean encontrado = false;
+            for (Opcion op : permitidas) {
+                if (op.getCodigo().equalsIgnoreCase(p)) {
+                    resultado.add(op.getCodigo());
+                    encontrado = true;
+                    break;
+                }
+            }
+            if (!encontrado) {
+                return Optional.empty();
+            }
+        }
+        return Optional.of(resultado);
     }
 
     /**

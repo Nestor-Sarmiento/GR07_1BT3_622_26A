@@ -15,7 +15,9 @@ import repositories.UsuarioRepository;
 import schemas.Usuario;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @WebServlet(name = "registroServlet", urlPatterns = "/registro")
@@ -102,28 +104,16 @@ public class RegistroServlet extends HttpServlet {
                     return;
                 }
                 String[] materiasParam = req.getParameterValues("materias");
-                Set<String> codigos = new HashSet<>();
-                if (materiasParam != null) {
-                    for (String m : materiasParam) {
-                        if (m == null || m.isBlank()) {
-                            continue;
-                        }
-                        boolean ok = false;
-                        for (MateriasCatalogo.Opcion op : MateriasCatalogo.porCarreraParaTutor(carreraRegistro, semestre)) {
-                            if (op.getCodigo().equalsIgnoreCase(m.trim())) {
-                                codigos.add(op.getCodigo());
-                                ok = true;
-                                break;
-                            }
-                        }
-                        if (!ok) {
-                            req.setAttribute("error",
-                                    "Una o más materias no son válidas para tu carrera y semestre (solo semestres anteriores al tuyo).");
-                            req.getRequestDispatcher("/registro.jsp").forward(req, resp);
-                            return;
-                        }
-                    }
+                Iterable<String> tokens = materiasParam == null ? List.of() : Arrays.asList(materiasParam);
+                Optional<Set<String>> codigosOpt =
+                        MateriasCatalogo.normalizarCodigosParaTutor(carreraRegistro, semestre, tokens);
+                if (codigosOpt.isEmpty()) {
+                    req.setAttribute("error",
+                            "Una o más materias no son válidas para tu carrera y semestre (solo semestres anteriores al tuyo).");
+                    req.getRequestDispatcher("/registro.jsp").forward(req, resp);
+                    return;
                 }
+                Set<String> codigos = codigosOpt.get();
                 if (codigos.isEmpty()) {
                     req.setAttribute("error", "Debes seleccionar al menos una materia relacionada.");
                     req.getRequestDispatcher("/registro.jsp").forward(req, resp);
